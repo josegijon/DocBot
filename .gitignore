@@ -28,3 +28,9 @@ DESIGN_SYSTEM.md
 enunciado.txt
 estructura.txt
 enunciado-docbot.md
+
+
+.env
+.venv/
+
+storage/
