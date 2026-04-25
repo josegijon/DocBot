@@ -32,5 +32,6 @@ enunciado-docbot.md
 
 .env
 .venv/
-
+**/__pycache__/
+*.pyc
 storage/
