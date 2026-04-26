@@ -1,19 +1,17 @@
 import fitz
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
-from sentence_transformers import SentenceTransformer
 import chromadb
 from uuid import uuid4
 
 from app.core.config import settings
 from app.rag.progress import progress_store
+from app.core.ml_models import embeddings
 
 text_splitter = RecursiveCharacterTextSplitter(
     chunk_size=800,  # Tamaño máximo de cada trozo (caracteres)
     chunk_overlap=150,  # Cuántos caracteres se repiten del trozo anterior
 )
-
-embeddings = SentenceTransformer("all-MiniLM-L6-v2")
 
 
 def update_progress_store(doc_id, status, percent):
