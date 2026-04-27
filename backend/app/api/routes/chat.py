@@ -5,7 +5,7 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import StreamingResponse
 
 from app.models.chat import ChatRequest
-from app.rag.memory import get_history, add_message
+from app.rag.memory import get_history, add_message, delete_session
 from app.rag.retriever import retrieve
 from app.rag.reranker import rerank
 from app.rag.prompt_builder import build_prompt
@@ -52,3 +52,10 @@ async def chat(request: ChatRequest):
 
     # Devuelve respuesta en streaming
     return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
+@router.get("/{session_id}/history")
+async def get_chat_session_history(session_id: str):
+    history = get_history(session_id)
+
+    return list(history)
