@@ -9,7 +9,7 @@ client = Groq(api_key=settings.GROQ_API_KEY)
 def generate(messages: list):
 
     completion = client.chat.completions.create(
-        model="llama-3.1-70b-versatile", messages=messages, stream=True
+        model="llama-3.3-70b-versatile", messages=messages, stream=True
     )
 
     for chunk in completion:

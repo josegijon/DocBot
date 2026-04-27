@@ -26,7 +26,7 @@ def ingest(pdf_path, doc_id):
     documents_langchain = [
         Document(
             page_content=page.get_text(),
-            metadata={"page": page.number, "doc_id": doc_id},
+            metadata={"page": page.number + 1, "doc_id": doc_id},
         )
         for page in doc
     ]
