@@ -1,4 +1,11 @@
-from fastapi import APIRouter, HTTPException, UploadFile, status, BackgroundTasks
+from fastapi import (
+    APIRouter,
+    HTTPException,
+    UploadFile,
+    status,
+    BackgroundTasks,
+    Request,
+)
 from fastapi.responses import StreamingResponse
 from app.models.document import UploadResponse
 from uuid import uuid4
@@ -41,7 +48,9 @@ async def validate_pdf_file(file: UploadFile):
 
 # --- Endpoint ---
 @router.post("/upload", response_model=UploadResponse)
-async def upload_document(background_tasks: BackgroundTasks, file: UploadFile):
+async def upload_document(
+    request: Request, background_tasks: BackgroundTasks, file: UploadFile
+):
     content = await validate_pdf_file(file)
 
     doc_id = str(uuid4())
@@ -59,7 +68,14 @@ async def upload_document(background_tasks: BackgroundTasks, file: UploadFile):
             detail=f"No se pudo guardar el archivo en el servidor: {str(e)}",
         )
 
-    background_tasks.add_task(ingest, str(file_path), doc_id)
+    client = request.app.state.embeddings_model
+
+    background_tasks.add_task(
+        ingest,
+        str(file_path),
+        doc_id,
+        client,
+    )
     # Para producción se usaria Celery o ARQ con worker separado. Aquí añadiria complejidad y costo.
 
     return UploadResponse(doc_id=doc_id, filename=file.filename, chunks=0)
