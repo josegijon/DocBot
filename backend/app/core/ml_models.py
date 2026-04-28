@@ -1,3 +1,17 @@
+from groq import AsyncGroq
 from sentence_transformers import SentenceTransformer
+from app.core.config import settings
 
-embeddings = SentenceTransformer("all-MiniLM-L6-v2")
+
+def load_embeddings_model() -> SentenceTransformer:
+    """
+    Carga el modelo de embeddings en memoria.
+    """
+    return SentenceTransformer(settings.EMBEDDINGS_MODEL_NAME)
+
+
+def load_groq_client() -> AsyncGroq:
+    """
+    Inicializa el cliente asíncrono de Groq.
+    """
+    return AsyncGroq(api_key=settings.GROQ_API_KEY)

@@ -1,6 +1,6 @@
 import json
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import StreamingResponse
 
@@ -16,33 +16,37 @@ router = APIRouter(prefix="/api/chat", tags=["Chat"])
 
 
 @router.post("/")
-async def chat(request: ChatRequest):
+async def chat(request: Request, body: ChatRequest):
     # Obtiene historial
-    history = get_history(request.session_id)
+    history = get_history(body.session_id)
 
     # Recuperar candidatos
-    initial_chunks = await run_in_threadpool(retrieve, request.message, request.doc_id)
+    initial_chunks = await run_in_threadpool(retrieve, body.message, body.doc_id)
 
     # Refinar resultados
-    best_chunks = await run_in_threadpool(rerank, request.message, initial_chunks)
+    best_chunks = await run_in_threadpool(rerank, body.message, initial_chunks)
 
     # Construir prompt
-    messages = build_prompt(query=request.message, chunks=best_chunks, history=history)
+    messages = build_prompt(query=body.message, chunks=best_chunks, history=history)
 
     # Añadir la pregunta del usuario al historial
-    add_message(request.session_id, role="user", content=request.message)
+    add_message(body.session_id, role="user", content=body.message)
+
+    # Extraemos cliente del estado de la app
+    client = request.app.state.groq_client
 
     # Definir generador que capture la respuesta y la guarde
     async def event_generator():
         full_response = ""
-        for token in generate(messages):
+
+        async for token in generate(messages, client):
             full_response += token
             # Fromato SSE para cada token
             data = json.dumps({"token": token})
             yield f"data: {data}\n\n"
 
         # Guarda la respuesta completa
-        add_message(request.session_id, role="assistant", content=full_response)
+        add_message(body.session_id, role="assistant", content=full_response)
 
         # Enviar fuentes al final del stream
         sources = [
