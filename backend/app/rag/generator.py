@@ -1,17 +1,39 @@
-from groq import Groq
+from groq import AsyncGroq, AuthenticationError, BadRequestError
+import logging
 
 from app.core.config import settings
+from app.core.exceptions import AuthException, ModelException, LLMException
+
+logger = logging.getLogger(__name__)
 
 
-client = Groq(api_key=settings.GROQ_API_KEY)
+async def generate(messages: list, client: AsyncGroq):
+    """
+    Generador asíncrono para streaming de respuestas desde Groq.
+    Gestiona errores específicos de la API mapeándolos a excepciones internas.
+    """
+    try:
+        completion = await client.chat.completions.create(
+            model=settings.GROQ_MODEL, messages=messages, stream=True
+        )
 
+        async for chunk in completion:
+            content = chunk.choices[0].delta.content
+            if content:
+                yield content
 
-def generate(messages: list):
+    except AuthenticationError:
+        logger.error("Error de autenticación con Groq: API Key inválida.")
+        raise AuthException("La API Key de Groq es inválida o ha expirado.")
 
-    completion = client.chat.completions.create(
-        model="llama-3.3-70b-versatile", messages=messages, stream=True
-    )
+    except BadRequestError as e:
+        logger.error(f"Error en la petición a Groq (BadRequest): {str(e)}")
+        raise ModelException(f"Error en la configuración del modelo: {str(e)}")
 
-    for chunk in completion:
-        if chunk.choices[0].delta.content is not None:
-            yield chunk.choices[0].delta.content
+    except Exception as e:
+        # Capturamos cualquier otro error (red, límites de tasa, etc.)
+        error_msg = (
+            f"Error inesperado en el servicio LLM: {type(e).__name__} - {str(e)}"
+        )
+        logger.critical(error_msg)
+        raise LLMException(error_msg)
