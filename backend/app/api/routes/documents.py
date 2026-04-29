@@ -15,7 +15,10 @@ import json
 
 from app.core.config import settings
 from app.rag.ingestor import ingest
-from app.rag.progress import progress_store
+from app.rag.progress import (
+    get_progress,
+    IngestionStatus,
+)
 
 router = APIRouter(prefix="/api/documents", tags=["Documents"])
 
@@ -85,7 +88,10 @@ async def upload_document(
 async def get_document_status(doc_id: str):
     async def event_generator():
         while True:
-            entry = progress_store.get(doc_id, {"status": "processing", "progress": 0})
+            entry = get_progress(doc_id) or {
+                "status": IngestionStatus.PROCESSING,
+                "progress": 0,
+            }
             current_progress = entry["progress"]
             current_status = entry["status"]
 
