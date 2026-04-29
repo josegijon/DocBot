@@ -6,7 +6,10 @@ import chromadb
 from uuid import uuid4
 
 from app.core.config import settings
-from app.rag.progress import progress_store
+from app.rag.progress import (
+    set_progress,
+    IngestionStatus,
+)
 from app.core.exceptions import (
     PDFNotFoundException,
     VectorStoreException,
@@ -144,13 +147,6 @@ def insert_chunks(collection, texts, vectors, final_chunks):
         )
 
 
-def update_progress_store(doc_id, status, percent):
-    """
-    Actualiza el estado y porcentaje de progreso del procesamiento en el almacén global.
-    """
-    progress_store[doc_id] = {"status": status, "progress": percent}
-
-
 def ingest(pdf_path, doc_id, embeddings_model):
     """
     Orquestador del pipeline RAG: extrae, fragmenta, vectoriza y almacena un PDF.
@@ -166,7 +162,7 @@ def ingest(pdf_path, doc_id, embeddings_model):
     Returns:
         int: Número total de fragmentos insertados en la base de datos.
     """
-    update_progress_store(doc_id, "processing", 0)
+    set_progress(doc_id, IngestionStatus.PROCESSING, 0)
 
     # Coge el texto del pdf
     documents_langchain = get_text_pdf(pdf_path, doc_id)
@@ -175,22 +171,22 @@ def ingest(pdf_path, doc_id, embeddings_model):
     if not documents_langchain or all(
         not d.page_content.strip() for d in documents_langchain
     ):
-        update_progress_store(doc_id, "failed", 0)
+        set_progress(doc_id, IngestionStatus.FAILED, 0)
         logger.warning(f"El documento {doc_id} está vacío o no tiene texto legible.")
         raise PDFEmptyException("El archivo PDF no contiene texto extraíble.")
 
-    update_progress_store(doc_id, "processing", 25)
+    set_progress(doc_id, IngestionStatus.PROCESSING, 25)
 
     # Fragmentación
     final_chunks = create_chunks(documents_langchain)
-    update_progress_store(doc_id, "processing", 50)
+    set_progress(doc_id, IngestionStatus.PROCESSING, 50)
 
     # Extrae solo el texto de cada chunk para generar los vectores
     texts = extract_texts(final_chunks)
 
     # Vectorización
     vectors = create_embeddings(texts, embeddings_model)
-    update_progress_store(doc_id, "processing", 75)
+    set_progress(doc_id, IngestionStatus.PROCESSING, 75)
 
     # Inicializa el cliente de base de datos
     collection = initialize_client(doc_id)
@@ -198,6 +194,6 @@ def ingest(pdf_path, doc_id, embeddings_model):
     # Inserta los datos
     insert_chunks(collection, texts, vectors, final_chunks)
 
-    update_progress_store(doc_id, "ready", 100)
+    set_progress(doc_id, IngestionStatus.READY, 100)
 
     return collection.count()
