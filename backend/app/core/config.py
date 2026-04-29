@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list[str] = ["http://localhost:5173"]
     GROQ_MODEL: str = "llama-3.3-70b-versatile"
     EMBEDDINGS_MODEL_NAME: str = "all-MiniLM-L6-v2"
+    CONVERSATION_MAX_TURNS: int = 6
 
     model_config = SettingsConfigDict(
         env_file=".env",  # Indica el archivo donde leer

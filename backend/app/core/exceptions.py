@@ -43,6 +43,12 @@ class IngestionException(RAGException):
     pass
 
 
+class SessionException(RAGException):
+    """Errores relacionados con la sesión de chat."""
+
+    pass
+
+
 class PDFNotFoundException(IngestionException):
     """El archivo PDF especificado no existe en la ruta proporcionada."""
 
