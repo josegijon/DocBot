@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     GROQ_MODEL: str = "llama-3.3-70b-versatile"
     EMBEDDINGS_MODEL_NAME: str = "all-MiniLM-L6-v2"
     CONVERSATION_MAX_TURNS: int = 6
+    RERANKER_TOP_K: int = 3
+    RERANKER_MODEL_NAME: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
     model_config = SettingsConfigDict(
         env_file=".env",  # Indica el archivo donde leer
