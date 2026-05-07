@@ -1,9 +1,13 @@
+from pathlib import Path
+
 import fitz
 import logging
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 import chromadb
 from uuid import uuid4
+
+from sentence_transformers import SentenceTransformer
 
 from app.core.config import settings
 from app.rag.progress import (
@@ -27,7 +31,7 @@ text_splitter = RecursiveCharacterTextSplitter(
 )
 
 
-def get_text_pdf(pdf_path, doc_id):
+def get_text_pdf(pdf_path: Path, doc_id: str) -> list[Document]:
     """
     Extrae el texto de un archivo PDF y lo convierte en una lista de objetos Document.
 
@@ -59,7 +63,7 @@ def get_text_pdf(pdf_path, doc_id):
     return documents_langchain
 
 
-def create_chunks(documents_langchain):
+def create_chunks(documents_langchain: list[Document]) -> list[Document]:
     """
     Divide los documentos extensos en fragmentos más pequeños (chunks).
 
@@ -72,7 +76,7 @@ def create_chunks(documents_langchain):
     return text_splitter.split_documents(documents_langchain)
 
 
-def extract_texts(chunks):
+def extract_texts(chunks: list[Document]) -> list[str]:
     """
     Extrae únicamente el contenido textual de una lista de fragmentos.
 
@@ -85,7 +89,7 @@ def extract_texts(chunks):
     return [chunk.page_content for chunk in chunks]
 
 
-def initialize_client(doc_id):
+def initialize_client(doc_id: str) -> chromadb.Collection:
     """
     Inicializa el cliente de base de datos vectorial ChromaDB y crea una colección.
 
@@ -110,7 +114,12 @@ def initialize_client(doc_id):
         )
 
 
-def insert_chunks(collection, texts, vectors, final_chunks):
+def insert_chunks(
+    collection: chromadb.Collection,
+    texts: list[str],
+    vectors: list[list[float]],
+    final_chunks: list[Document],
+) -> None:
     """
     Inserta los fragmentos de texto, sus vectores y metadatos en la colección de ChromaDB.
 
@@ -134,7 +143,7 @@ def insert_chunks(collection, texts, vectors, final_chunks):
         )
 
 
-def ingest(pdf_path, doc_id, embeddings_model):
+def ingest(pdf_path: Path, doc_id: str, embeddings_model: SentenceTransformer) -> int:
     """
     Orquestador del pipeline RAG: extrae, fragmenta, vectoriza y almacena un PDF.
 
