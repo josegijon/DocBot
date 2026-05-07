@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from app.core.config import settings
-from app.core.ml_models import load_embeddings_model, load_groq_client
+from app.core.ml_models import load_embeddings_model, load_groq_client, load_reranker
 from api.routes import documents, chat
 
 
@@ -15,10 +15,12 @@ async def lifespan(app: FastAPI):
     Durante el arranque:
         - Carga el modelo de embeddings en memoria.
         - Inicializa el cliente asíncrono de Groq.
-        - Almacena ambas instancias en 'app.state' para acceso global.
+        - Carga el modelo de reranker en memoria.
+        - Almacena las instancias en 'app.state' para acceso global.
     """
     app.state.embeddings = load_embeddings_model()
     app.state.groq_client = load_groq_client()
+    app.state.reranker = load_reranker()
 
     yield
 
