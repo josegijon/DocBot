@@ -8,7 +8,7 @@ from fastapi import (
 )
 from fastapi.responses import StreamingResponse
 from app.models.document import UploadResponse
-from uuid import uuid4
+from uuid import UUID, uuid4
 from pathlib import Path
 import asyncio
 import json
@@ -85,10 +85,10 @@ async def upload_document(
 
 
 @router.get("/{doc_id}/status")
-async def get_document_status(doc_id: str):
+async def get_document_status(doc_id: UUID):
     async def event_generator():
         while True:
-            entry = get_progress(doc_id) or {
+            entry = get_progress(str(doc_id)) or {
                 "status": IngestionStatus.PROCESSING,
                 "progress": 0,
             }
