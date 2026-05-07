@@ -15,6 +15,7 @@ from app.core.exceptions import (
     VectorStoreException,
     PDFEmptyException,
 )
+from app.rag.embeddings import create_embeddings
 
 logger = logging.getLogger(__name__)
 
@@ -82,20 +83,6 @@ def extract_texts(chunks):
         list[str]: Lista de cadenas de texto.
     """
     return [chunk.page_content for chunk in chunks]
-
-
-def create_embeddings(texts, embeddings_model):
-    """
-    Transforma una lista de textos en sus representaciones vectoriales (embeddings).
-
-    Args:
-        texts (list[str]): Textos a procesar.
-        embeddings_model: Modelo de SentenceTransformers cargado.
-
-    Returns:
-        list[list[float]]: Lista de vectores numéricos.
-    """
-    return embeddings_model.encode(texts).tolist()
 
 
 def initialize_client(doc_id):
