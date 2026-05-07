@@ -26,8 +26,8 @@ logger = logging.getLogger(__name__)
 
 # Configuración del divisor de texto
 text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=800,  # Tamaño máximo de cada trozo (caracteres)
-    chunk_overlap=150,  # Cuántos caracteres se repiten del trozo anterior
+    chunk_size=settings.CHUNK_SIZE,  # Tamaño máximo de cada trozo (caracteres)
+    chunk_overlap=settings.CHUNK_OVERLAP,  # Cuántos caracteres se repiten del trozo anterior
 )
 
 
