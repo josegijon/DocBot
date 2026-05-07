@@ -65,3 +65,11 @@ class VectorStoreException(IngestionException):
     """Errores relacionados con la base de datos vectorial (ChromaDB)."""
 
     pass
+
+class PromptException(RAGException):
+    """Errores relacionados con la construcción de prompts."""
+    pass
+
+class EmptyQueryError(PromptException):
+    """El query proporcionado está vacío o contiene solo espacios."""
+    pass
