@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     CONVERSATION_MAX_TURNS: int = 6
     RERANKER_TOP_K: int = 3
     RERANKER_MODEL_NAME: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    N_RESULTS_RETRIEVE: int = 10
 
     model_config = SettingsConfigDict(
         env_file=".env",  # Indica el archivo donde leer
