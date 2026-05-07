@@ -66,18 +66,26 @@ class VectorStoreException(IngestionException):
 
     pass
 
+
 class PromptException(RAGException):
     """Errores relacionados con la construcción de prompts."""
+
     pass
+
 
 class EmptyQueryError(PromptException):
     """El query proporcionado está vacío o contiene solo espacios."""
+
     pass
+
 
 class RetrievalException(RAGException):
     """Errores ocurridos durante el proceso de recuperación de información."""
+
     pass
+
 
 class NoChunksFoundException(RetrievalException):
     """No se encontraron fragmentos (chunks) de texto relevantes para la consulta dada."""
+
     pass
