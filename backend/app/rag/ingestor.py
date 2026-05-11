@@ -158,6 +158,8 @@ def ingest(pdf_path: Path, doc_id: str, embeddings_model: SentenceTransformer) -
     Returns:
         int: Número total de fragmentos insertados en la base de datos.
     """
+    logger.info(f"Iniciando ingesta del documento: {doc_id}")
+
     set_progress(doc_id, IngestionStatus.PROCESSING, 0)
 
     # Coge el texto del pdf
@@ -191,5 +193,7 @@ def ingest(pdf_path: Path, doc_id: str, embeddings_model: SentenceTransformer) -
     insert_chunks(collection, texts, vectors, final_chunks)
 
     set_progress(doc_id, IngestionStatus.READY, 100)
+
+    logger.info(f"Indexación completada: {collection.count} fragmentos de {doc_id}")
 
     return collection.count()
