@@ -37,6 +37,12 @@ class RAGException(DocBotException):
     pass
 
 
+class EmbeddingGenerationException(RAGException):
+    """Error al generar representaciones vectoriales."""
+
+    pass
+
+
 class IngestionException(RAGException):
     """Errores ocurridos durante el proceso de ingesta de documentos."""
 
