@@ -8,7 +8,12 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-def rerank(model: CrossEncoder, query: str, chunks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+_ROUNDING_DECIMALS = 4
+
+
+def rerank(
+    model: CrossEncoder, query: str, chunks: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
     """
     Reordena (rerank) una lista de fragmentos de texto (chunks) basándose en su relevancia
     para una consulta dada utilizando un modelo CrossEncoder.
@@ -27,7 +32,8 @@ def rerank(model: CrossEncoder, query: str, chunks: list[dict[str, Any]]) -> lis
     Raises:
         NoChunksFoundException: Si la lista de chunks proporcionada está vacía.
     """
-    
+    logger.info(f"Reranking {len(chunks)} chunks iniciado.")
+
     if not chunks:
         logger.error(
             "El reranker recibió una lista vacía de chunks. "
@@ -37,19 +43,18 @@ def rerank(model: CrossEncoder, query: str, chunks: list[dict[str, Any]]) -> lis
             "No se encontraron chunks para reordenar. "
             "El retriever no devolvió resultados o el filtro de similitud eliminó todos los candidatos."
         )
-    # Prepara los pares para el modelo
+
     pairs = [[query, chunk["text"]] for chunk in chunks]
 
-    # Predice scores. Devuelve array de numpy con las puntuaciones
     scores = model.predict(pairs)
 
-    # Empareja chunks con su nuevos scores y ordena
     ranked_chunks = sorted(zip(chunks, scores), key=lambda x: x[1], reverse=True)
 
-    # Actualiza el score y devuelve el RERANKER_TOP_K
     top_chunks = []
-    for chunk, score in ranked_chunks[:settings.RERANKER_TOP_K]:
-        chunk["score"] = round(float(score), 4)
+    for chunk, score in ranked_chunks[: settings.RERANKER_TOP_K]:
+        chunk["score"] = round(float(score), _ROUNDING_DECIMALS)
         top_chunks.append(chunk)
+
+    logger.info(f"Reranking completado, retornando el top {len(top_chunks)}")
 
     return top_chunks
