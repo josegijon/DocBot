@@ -20,6 +20,7 @@ from app.core.exceptions import (
     PDFEmptyException,
 )
 from app.rag.embeddings import create_embeddings
+from app.rag.chroma_client import get_chroma_client
 
 logger = logging.getLogger(__name__)
 
@@ -99,18 +100,17 @@ def initialize_client(doc_id: str) -> chromadb.Collection:
     Returns:
         chromadb.Collection: La colección de ChromaDB lista para insertar datos.
     """
+    client = get_chroma_client(doc_id)
+
     try:
-        client = chromadb.PersistentClient(
-            path=f"{settings.CHROMA_PERSIST_DIR}/{doc_id}"
-        )
         collection = client.get_or_create_collection(
             name=doc_id,
         )
         return collection
     except Exception as e:
-        logger.error(f"Error al inicializar ChromaDB para {doc_id}: {str(e)}")
+        logger.error(f"Error en la colección del documento {doc_id}: {str(e)}")
         raise VectorStoreException(
-            f"Error de conexión con la base de datos vectorial: {str(e)}"
+            f"Error en la colección del documento {doc_id}: {str(e)}"
         )
 
 
