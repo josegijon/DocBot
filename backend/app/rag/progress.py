@@ -1,16 +1,9 @@
-from enum import Enum
 import logging
 from typing import TypedDict
 
+from app.models.ingestion_status import IngestionStatus
+
 logger = logging.getLogger(__name__)
-
-
-class IngestionStatus(str, Enum):
-    """Estados posibles del proceso de ingesta."""
-
-    PROCESSING = "processing"
-    READY = "ready"
-    FAILED = "failed"
 
 
 class ProgressEntry(TypedDict):
