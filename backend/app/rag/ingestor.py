@@ -10,10 +10,7 @@ from uuid import uuid4
 from sentence_transformers import SentenceTransformer
 
 from app.core.config import settings
-from app.rag.progress import (
-    set_progress,
-    IngestionStatus,
-)
+from app.rag.progress import set_progress
 from app.core.exceptions import (
     PDFNotFoundException,
     VectorStoreException,
@@ -21,6 +18,7 @@ from app.core.exceptions import (
 )
 from app.rag.embeddings import create_embeddings
 from app.rag.chroma_client import get_chroma_client
+from app.models.ingestion_status import IngestionStatus
 
 logger = logging.getLogger(__name__)
 

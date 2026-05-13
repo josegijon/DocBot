@@ -81,7 +81,9 @@ async def upload_document(
     )
     # Para producción se usaria Celery o ARQ con worker separado. Aquí añadiria complejidad y costo.
 
-    return UploadResponse(doc_id=doc_id, filename=file.filename, chunks=0)
+    return UploadResponse(
+        doc_id=doc_id, filename=file.filename, status=IngestionStatus.PROCESSING
+    )
 
 
 @router.get("/{doc_id}/status")
