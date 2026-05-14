@@ -13,7 +13,11 @@ from sentence_transformers import SentenceTransformer
 
 from app.core.config import settings
 from app.rag.embeddings import create_embeddings
-from app.core.exceptions import EmptyQueryError, VectorStoreException
+from app.core.exceptions import (
+    EmptyQueryError,
+    DocumentNotFoundException,
+    VectorStoreInternalException,
+)
 from app.rag.chroma_client import get_chroma_client
 
 
@@ -42,8 +46,9 @@ def retrieve(
             - 'score' (float): El nivel de similitud entre la consulta y el fragmento.
 
     Raises:
-        EmptyQueryError: Si la consulta proporcionada está vacía o consiste únicamente de espacios en blanco.
-        VectorStoreException: Si ocurre un error al acceder a la colección o al realizar la búsqueda semántica.
+        EmptyQueryError: Si la consulta proporcionada está vacía...
+        DocumentNotFoundException: Si el documento (colección) no existe en la base de datos.
+        VectorStoreInternalException: Si ocurre un error interno al acceder a la colección o buscar.
     """
 
     logger.info(f"Iniciando búsqueda semántica para {doc_id}")
@@ -59,9 +64,16 @@ def retrieve(
 
     try:
         collection = client.get_collection(name=doc_id)
+    except ValueError:
+        logger.warning(f"Intento de acceso a documento inexistente: {doc_id}")
+        raise DocumentNotFoundException(
+            f"El documento con ID {doc_id} no fue encontrado."
+        )
     except Exception as e:
-        logger.error(f"Error en la colección del documento {doc_id}: {e}")
-        raise VectorStoreException(f"Error en la colección del documento {doc_id}: {e}")
+        logger.error(f"Error inesperado al acceder a la colección {doc_id}: {e}")
+        raise VectorStoreInternalException(
+            f"Error interno al acceder a la base de datos para {doc_id}."
+        )
 
     query_vectors = create_embeddings([query], embeddings_model)
 
@@ -72,7 +84,9 @@ def retrieve(
         )
     except Exception as e:
         logger.error(f"Error en la búsqueda semántica: {e}")
-        raise VectorStoreException(f"Error en la búsqueda semántica: {e}")
+        raise VectorStoreInternalException(
+            f"Error interno al realizar la búsqueda vectorial: {e}"
+        )
 
     formatted_results = [
         {

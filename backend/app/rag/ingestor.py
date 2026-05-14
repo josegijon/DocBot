@@ -1,32 +1,31 @@
 from pathlib import Path
-
-import fitz
-import logging
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_core.documents import Document
-import chromadb
 from uuid import uuid4
 
+import chromadb
+import fitz
+import logging
+from langchain_core.documents import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
 
 from app.core.config import settings
-from app.rag.progress import set_progress
 from app.core.exceptions import (
-    PDFNotFoundException,
-    VectorStoreException,
     PDFEmptyException,
+    PDFNotFoundException,
+    VectorStoreInternalException,
 )
-from app.rag.embeddings import create_embeddings
-from app.rag.chroma_client import get_chroma_client
 from app.models.ingestion_status import IngestionStatus
+from app.rag.chroma_client import get_chroma_client
+from app.rag.embeddings import create_embeddings
+from app.rag.progress import set_progress
 
 logger = logging.getLogger(__name__)
 
 
-# Configuración del divisor de texto
+# Configuración del divisor de texto para fragmentación del PDF.
 text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=settings.CHUNK_SIZE,  # Tamaño máximo de cada trozo (caracteres)
-    chunk_overlap=settings.CHUNK_OVERLAP,  # Cuántos caracteres se repiten del trozo anterior
+    chunk_size=settings.CHUNK_SIZE,
+    chunk_overlap=settings.CHUNK_OVERLAP,
 )
 
 
@@ -35,7 +34,7 @@ def get_text_pdf(pdf_path: Path, doc_id: str) -> list[Document]:
     Extrae el texto de un archivo PDF y lo convierte en una lista de objetos Document.
 
     Args:
-        pdf_path (str): Ruta local al archivo PDF.
+        pdf_path (Path): Ruta local al archivo PDF.
         doc_id (str): Identificador único del documento.
 
     Returns:
@@ -107,8 +106,8 @@ def initialize_client(doc_id: str) -> chromadb.Collection:
         return collection
     except Exception as e:
         logger.error(f"Error en la colección del documento {doc_id}: {str(e)}")
-        raise VectorStoreException(
-            f"Error en la colección del documento {doc_id}: {str(e)}"
+        raise VectorStoreInternalException(
+            f"Error interno al inicializar la colección {doc_id}: {str(e)}"
         )
 
 
@@ -124,19 +123,19 @@ def insert_chunks(
     Args:
         collection: Colección de ChromaDB activa.
         texts (list[str]): Contenido textual de los fragmentos.
-        vectors (list): Embeddings correspondientes.
+        vectors (list[list[float]]): Embeddings correspondientes.
         final_chunks (list[Document]): Fragmentos originales para extraer metadatos.
     """
     try:
         collection.add(
             ids=[str(uuid4()) for _ in final_chunks],
-            documents=texts,  # Contenido textual para recuperarlo despues
-            metadatas=[chunk.metadata for chunk in final_chunks],  # Info extra
-            embeddings=vectors,  # Representación numérica para la búsqueda semántica
+            documents=texts,
+            metadatas=[chunk.metadata for chunk in final_chunks],
+            embeddings=vectors,
         )
     except Exception as e:
         logger.error(f"Error al insertar chunks en ChromaDB: {str(e)}")
-        raise VectorStoreException(
+        raise VectorStoreInternalException(
             f"No se pudieron guardar los fragmentos en la base de datos: {str(e)}"
         )
 
@@ -149,7 +148,7 @@ def ingest(pdf_path: Path, doc_id: str, embeddings_model: SentenceTransformer) -
     pueda mostrar el estado de la carga en tiempo real.
 
     Args:
-        pdf_path (str): Ruta del archivo PDF a procesar.
+        pdf_path (Path): Ruta del archivo PDF a procesar.
         doc_id (str): ID único para el documento.
         embeddings_model: Instancia del modelo de embeddings a utilizar.
 
@@ -160,10 +159,9 @@ def ingest(pdf_path: Path, doc_id: str, embeddings_model: SentenceTransformer) -
 
     set_progress(doc_id, IngestionStatus.PROCESSING, 0)
 
-    # Coge el texto del pdf
     documents_langchain = get_text_pdf(pdf_path, doc_id)
 
-    # Validación de PDF vacío
+    # Validación de PDF vacío: sin contenido extraíble en ninguna página.
     if not documents_langchain or all(
         not d.page_content.strip() for d in documents_langchain
     ):
@@ -173,21 +171,16 @@ def ingest(pdf_path: Path, doc_id: str, embeddings_model: SentenceTransformer) -
 
     set_progress(doc_id, IngestionStatus.PROCESSING, 25)
 
-    # Fragmentación
     final_chunks = create_chunks(documents_langchain)
     set_progress(doc_id, IngestionStatus.PROCESSING, 50)
 
-    # Extrae solo el texto de cada chunk para generar los vectores
     texts = extract_texts(final_chunks)
 
-    # Vectorización
     vectors = create_embeddings(texts, embeddings_model)
     set_progress(doc_id, IngestionStatus.PROCESSING, 75)
 
-    # Inicializa el cliente de base de datos
     collection = initialize_client(doc_id)
 
-    # Inserta los datos
     insert_chunks(collection, texts, vectors, final_chunks)
 
     set_progress(doc_id, IngestionStatus.READY, 100)

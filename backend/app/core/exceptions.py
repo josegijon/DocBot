@@ -73,6 +73,18 @@ class VectorStoreException(IngestionException):
     pass
 
 
+class VectorStoreInternalException(VectorStoreException):
+    """Errores de infraestructura (corrupción, permisos, disco)."""
+
+    pass
+
+
+class DocumentNotFoundException(VectorStoreException):
+    """El documento/colección solicitado no existe en la base de datos."""
+
+    pass
+
+
 class PromptException(RAGException):
     """Errores relacionados con la construcción de prompts."""
 

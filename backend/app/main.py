@@ -6,6 +6,25 @@ from app.core.config import settings
 from app.core.ml_models import load_embeddings_model, load_groq_client, load_reranker
 from api.routes import documents, chat
 
+from app.core.exceptions import (
+    AuthException,
+    DocBotException,
+    DocumentNotFoundException,
+    LLMException,
+    PDFNotFoundException,
+    EmptyQueryError,
+    VectorStoreInternalException,
+)
+from app.core.exception_handlers import (
+    auth_exception_handler,
+    document_not_found_handler,
+    empty_query_handler,
+    pdf_not_found_handler,
+    llm_exception_handler,
+    generic_docbot_handler,
+    vector_store_internal_handler,
+)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,6 +50,15 @@ app = FastAPI(
     description="Backend para el sistema de gestión de documentos y chatbot",
     lifespan=lifespan,
 )
+
+# --- Registro de Exception Handlers Globales ---
+app.add_exception_handler(EmptyQueryError, empty_query_handler)
+app.add_exception_handler(PDFNotFoundException, pdf_not_found_handler)
+app.add_exception_handler(AuthException, auth_exception_handler)
+app.add_exception_handler(LLMException, llm_exception_handler)
+app.add_exception_handler(DocumentNotFoundException, document_not_found_handler)
+app.add_exception_handler(VectorStoreInternalException, vector_store_internal_handler)
+app.add_exception_handler(DocBotException, generic_docbot_handler)  # Red de seguridad
 
 # Configuración de Middleware para permitir peticiones Cross-Origin (CORS)
 app.add_middleware(
