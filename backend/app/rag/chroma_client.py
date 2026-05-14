@@ -13,7 +13,7 @@ from chromadb.api import ClientAPI
 from chromadb.errors import InvalidConfigurationError
 
 from app.core.config import settings
-from app.core.exceptions import VectorStoreException
+from app.core.exceptions import VectorStoreInternalException
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ def get_chroma_client(doc_id: str) -> ClientAPI:
         vectorial del documento especificado.
 
     Raises:
-        VectorStoreException: Si ocurre un error de sistema o permisos al
+        VectorStoreInternalException: Si ocurre un error de sistema o permisos al
             acceder al directorio de persistencia, si el archivo de base de
             datos está corrupto, si la configuración de ChromaDB es inválida
             o si se produce un error inesperado durante la inicialización.
@@ -51,7 +51,7 @@ def get_chroma_client(doc_id: str) -> ClientAPI:
         logger.error(
             f"Error de sistema/permisos al acceder a ChromaDB en {path}: {str(e)}"
         )
-        raise VectorStoreException(
+        raise VectorStoreInternalException(
             "No se pudo acceder al directorio de la base de datos. Verifique que la ruta existe y tiene permisos de lectura/escritura."
         )
 
@@ -59,13 +59,13 @@ def get_chroma_client(doc_id: str) -> ClientAPI:
         logger.error(
             f"Corrupción o error interno en SQLite para el documento {doc_id}: {str(e)}"
         )
-        raise VectorStoreException(
+        raise VectorStoreInternalException(
             "El archivo de la base de datos vectorial parece estar dañado o corrupto."
         )
 
     except InvalidConfigurationError as e:
         logger.error(f"Configuración inválida al inicializar ChromaDB: {str(e)}")
-        raise VectorStoreException(
+        raise VectorStoreInternalException(
             "Error de configuración en el motor de base de datos vectorial."
         )
 
@@ -73,7 +73,7 @@ def get_chroma_client(doc_id: str) -> ClientAPI:
         logger.error(
             f"Error inesperado al inicializar ChromaDB para {doc_id}: {str(e)}"
         )
-        raise VectorStoreException(
+        raise VectorStoreInternalException(
             f"Ocurrió un error inesperado de conexión con la base de datos vectorial: {str(e)}"
         )
 
