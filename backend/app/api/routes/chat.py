@@ -1,4 +1,5 @@
 import json
+import logging
 from uuid import UUID
 
 from fastapi import APIRouter, Request
@@ -12,6 +13,8 @@ from app.rag.reranker import rerank
 from app.rag.prompt_builder import build_prompt
 from app.rag.generator import generate
 
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/chat", tags=["Chat"])
 
@@ -45,24 +48,30 @@ async def chat(request: Request, body: ChatRequest):
 
     # Definir generador que capture la respuesta y la guarde
     async def event_generator():
-        full_response = ""
+        try:
+            full_response = ""
 
-        async for token in generate(messages, client):
-            full_response += token
-            # Fromato SSE para cada token
-            data = json.dumps({"token": token})
-            yield f"data: {data}\n\n"
+            async for token in generate(messages, client):
+                full_response += token
+                # Fromato SSE para cada token
+                data = json.dumps({"token": token})
+                yield f"data: {data}\n\n"
 
-        # Guarda la respuesta completa
-        add_message(
-            str(body.session_id), role=MessageRole.ASSISTANT, content=full_response
-        )
+            add_message(
+                str(body.session_id), role=MessageRole.ASSISTANT, content=full_response
+            )
 
-        # Enviar fuentes al final del stream
-        sources = [
-            {"page": c["page"], "text": c["text"][:100] + "..."} for c in best_chunks
-        ]
-        yield f"data: {json.dumps({'sources': sources})}\n\n"
+            # Enviar fuentes al final del stream
+            sources = [
+                {"page": c["page"], "text": c["text"][:100] + "..."}
+                for c in best_chunks
+            ]
+
+            yield f"data: {json.dumps({'sources': sources})}\n\n"
+
+        except Exception as e:
+            logger.error(f"Error en el stream: {str(e)}")
+            yield f"event: error\ndata: {json.dumps({'message': str(e)})}\n\n"
 
     # Devuelve respuesta en streaming
     return StreamingResponse(event_generator(), media_type="text/event-stream")
