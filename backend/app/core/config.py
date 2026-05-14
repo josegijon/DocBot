@@ -44,6 +44,8 @@ class Settings(BaseSettings):
             al dividir los documentos.
         CHUNK_OVERLAP: Número de caracteres de solapamiento entre
             fragmentos consecutivos para preservar contexto.
+        SOURCE_SNIPPET_LENGTH: Longitud en caracteres del fragmento
+            de fuente incluido en las respuestas generadas.
     """
 
     GROQ_API_KEY: str
@@ -59,6 +61,7 @@ class Settings(BaseSettings):
     N_RESULTS_RETRIEVE: int = 10
     CHUNK_SIZE: int = 800
     CHUNK_OVERLAP: int = 150
+    SOURCE_SNIPPET_LENGTH: int = 100
 
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -4,6 +4,7 @@ from fastapi.concurrency import run_in_threadpool
 from groq import AsyncGroq
 from sentence_transformers import CrossEncoder, SentenceTransformer
 
+from app.core.config import settings
 from app.rag.memory import add_message, get_history
 from app.rag.retriever import retrieve
 from app.rag.reranker import rerank
@@ -40,7 +41,11 @@ async def chat_stream(
 
     # Enviar fuentes al final del stream
     sources = [
-        {"page": c["page"], "text": c["text"][:100] + "..."} for c in best_chunks
+        {
+            "page": c["page"],
+            "text": c["text"][: settings.SOURCE_SNIPPET_LENGTH] + "...",
+        }
+        for c in best_chunks
     ]
 
     yield ("sources", sources)
