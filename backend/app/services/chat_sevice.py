@@ -3,6 +3,7 @@ from typing import AsyncGenerator
 from fastapi.concurrency import run_in_threadpool
 from groq import AsyncGroq
 from sentence_transformers import CrossEncoder, SentenceTransformer
+import logging
 
 from app.core.config import settings
 from app.rag.memory import add_message, get_history
@@ -11,6 +12,8 @@ from app.rag.reranker import rerank
 from app.rag.prompt_builder import build_prompt
 from app.models.chat import MessageRole
 from app.rag.generator import generate
+
+logger = logging.getLogger(__name__)
 
 
 async def chat_stream(
@@ -21,6 +24,8 @@ async def chat_stream(
     reranker: CrossEncoder,
     groq_client: AsyncGroq,
 ) -> AsyncGenerator[tuple, None]:
+
+    logger.info(f"Iniciando chat_stream | session_id: {session_id} | doc_id: {doc_id}")
 
     history = get_history(str(session_id))
     initial_chunks = await run_in_threadpool(
@@ -48,4 +53,7 @@ async def chat_stream(
         for c in best_chunks
     ]
 
+    logger.info(
+        f"Stream finalizado | session_id: {session_id} | tokens generados: {len(full_response)}"
+    )
     yield ("sources", sources)
