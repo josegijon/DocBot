@@ -15,7 +15,7 @@ from fastapi.responses import StreamingResponse
 from app.core.exceptions import AuthException, LLMException
 from app.models.chat import ChatRequest
 from app.rag.memory import delete_session, get_history
-from app.services.chat_service import chat_stream
+from app.services.chat_service import stream_chat_response
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ async def process_chat_message(
 
     async def generate_sse_events():
         try:
-            async for event_type, event_data in chat_stream(
+            async for event_type, event_data in stream_chat_response(
                 chat_request.message,
                 str(chat_request.doc_id),
                 str(chat_request.session_id),
