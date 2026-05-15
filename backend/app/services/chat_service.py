@@ -1,6 +1,6 @@
 from typing import AsyncGenerator
+import asyncio
 
-from fastapi.concurrency import run_in_threadpool
 from groq import AsyncGroq
 from sentence_transformers import CrossEncoder, SentenceTransformer
 import logging
@@ -23,15 +23,15 @@ async def chat_stream(
     embeddings_model: SentenceTransformer,
     reranker: CrossEncoder,
     groq_client: AsyncGroq,
-) -> AsyncGenerator[tuple, None]:
+) -> AsyncGenerator[tuple[str, str | list[dict]], None]:
 
     logger.info(f"Iniciando chat_stream | session_id: {session_id} | doc_id: {doc_id}")
 
     history = get_history(str(session_id))
-    initial_chunks = await run_in_threadpool(
+    initial_chunks = await asyncio.to_thread(
         retrieve, message, doc_id, embeddings_model
     )
-    best_chunks = await run_in_threadpool(rerank, reranker, message, initial_chunks)
+    best_chunks = await asyncio.to_thread(rerank, reranker, message, initial_chunks)
     message_prompt = build_prompt(query=message, chunks=best_chunks, history=history)
 
     add_message(str(session_id), role=MessageRole.USER, content=message)
