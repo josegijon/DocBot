@@ -85,6 +85,12 @@ class FileTooLargeException(IngestionException):
     pass
 
 
+class FileWriteException(IngestionException):
+    """Error al escribir en disco."""
+
+    pass
+
+
 class VectorStoreInternalException(VectorStoreException):
     """Errores de infraestructura (corrupción, permisos, disco)."""
 

@@ -14,6 +14,7 @@ from app.core.exceptions import (
     DocumentNotFoundException,
     EmptyQueryError,
     FileTooLargeException,
+    FileWriteException,
     InvalidFileTypeException,
     LLMException,
     PDFNotFoundException,
@@ -178,3 +179,17 @@ async def file_too_large_handler(
     """
 
     return _build_error_response(request, exc, status.HTTP_413_CONTENT_TOO_LARGE)
+
+
+async def file_write_handler(request: Request, exc: FileWriteException) -> JSONResponse:
+    """Maneja errores de escritura en disco.
+
+    Args:
+        request: Objeto de solicitud de FastAPI.
+        exc: Instancia de FileWriteException con el detalle del error.
+
+    Returns:
+        Respuesta JSON con código de estado 500 Internal Server Error.
+    """
+
+    return _build_error_response(request, exc, status.HTTP_500_INTERNAL_SERVER_ERROR)

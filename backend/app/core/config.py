@@ -62,6 +62,7 @@ class Settings(BaseSettings):
     CHUNK_SIZE: int = 800
     CHUNK_OVERLAP: int = 150
     SOURCE_SNIPPET_LENGTH: int = 100
+    CHUNK_READ_SIZE: int = 1 * 1024 * 1024
 
     model_config = SettingsConfigDict(
         env_file=".env",
