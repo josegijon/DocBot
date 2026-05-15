@@ -10,6 +10,8 @@ from app.core.exceptions import (
     AuthException,
     DocBotException,
     DocumentNotFoundException,
+    FileTooLargeException,
+    InvalidFileTypeException,
     LLMException,
     PDFNotFoundException,
     EmptyQueryError,
@@ -19,6 +21,8 @@ from app.core.exception_handlers import (
     auth_exception_handler,
     document_not_found_handler,
     empty_query_handler,
+    file_too_large_handler,
+    invalid_file_type_handler,
     pdf_not_found_handler,
     llm_exception_handler,
     generic_docbot_handler,
@@ -59,6 +63,8 @@ app.add_exception_handler(LLMException, llm_exception_handler)
 app.add_exception_handler(DocumentNotFoundException, document_not_found_handler)
 app.add_exception_handler(VectorStoreInternalException, vector_store_internal_handler)
 app.add_exception_handler(DocBotException, generic_docbot_handler)  # Red de seguridad
+app.add_exception_handler(InvalidFileTypeException, invalid_file_type_handler)
+app.add_exception_handler(FileTooLargeException, file_too_large_handler)
 
 # Configuración de Middleware para permitir peticiones Cross-Origin (CORS)
 app.add_middleware(
