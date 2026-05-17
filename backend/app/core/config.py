@@ -46,6 +46,8 @@ class Settings(BaseSettings):
             fragmentos consecutivos para preservar contexto.
         SOURCE_SNIPPET_LENGTH: Longitud en caracteres del fragmento
             de fuente incluido en las respuestas generadas.
+        CHUNK_READ_SIZE: Tamaño del buffer (en bytes) utilizado al leer
+            archivos para dividirlos en fragmentos (chunks).
     """
 
     GROQ_API_KEY: str
