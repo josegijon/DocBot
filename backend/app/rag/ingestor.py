@@ -155,36 +155,45 @@ def ingest(pdf_path: Path, doc_id: str, embeddings_model: SentenceTransformer) -
     Returns:
         int: Número total de fragmentos insertados en la base de datos.
     """
-    logger.info(f"Iniciando ingesta del documento: {doc_id}")
+    try:
+        logger.info(f"Iniciando ingesta del documento: {doc_id}")
 
-    set_progress(doc_id, IngestionStatus.PROCESSING, 0)
+        set_progress(doc_id, IngestionStatus.PROCESSING, 0)
 
-    documents_langchain = get_text_pdf(pdf_path, doc_id)
+        documents_langchain = get_text_pdf(pdf_path, doc_id)
 
-    # Validación de PDF vacío: sin contenido extraíble en ninguna página.
-    if not documents_langchain or all(
-        not d.page_content.strip() for d in documents_langchain
-    ):
+        # Validación de PDF vacío: sin contenido extraíble en ninguna página.
+        if not documents_langchain or all(
+            not d.page_content.strip() for d in documents_langchain
+        ):
+            set_progress(doc_id, IngestionStatus.FAILED, 0)
+            logger.warning(
+                f"El documento {doc_id} está vacío o no tiene texto legible."
+            )
+            raise PDFEmptyException("El archivo PDF no contiene texto extraíble.")
+
+        set_progress(doc_id, IngestionStatus.PROCESSING, 25)
+
+        final_chunks = create_chunks(documents_langchain)
+        set_progress(doc_id, IngestionStatus.PROCESSING, 50)
+
+        texts = extract_texts(final_chunks)
+
+        vectors = create_embeddings(texts, embeddings_model)
+        set_progress(doc_id, IngestionStatus.PROCESSING, 75)
+
+        collection = initialize_client(doc_id)
+
+        insert_chunks(collection, texts, vectors, final_chunks)
+
+        set_progress(doc_id, IngestionStatus.READY, 100)
+
+        logger.info(f"Indexación completada: {collection.count} fragmentos de {doc_id}")
+
+        return collection.count()
+
+    except PDFEmptyException:
+        raise
+    except Exception as e:
         set_progress(doc_id, IngestionStatus.FAILED, 0)
-        logger.warning(f"El documento {doc_id} está vacío o no tiene texto legible.")
-        raise PDFEmptyException("El archivo PDF no contiene texto extraíble.")
-
-    set_progress(doc_id, IngestionStatus.PROCESSING, 25)
-
-    final_chunks = create_chunks(documents_langchain)
-    set_progress(doc_id, IngestionStatus.PROCESSING, 50)
-
-    texts = extract_texts(final_chunks)
-
-    vectors = create_embeddings(texts, embeddings_model)
-    set_progress(doc_id, IngestionStatus.PROCESSING, 75)
-
-    collection = initialize_client(doc_id)
-
-    insert_chunks(collection, texts, vectors, final_chunks)
-
-    set_progress(doc_id, IngestionStatus.READY, 100)
-
-    logger.info(f"Indexación completada: {collection.count} fragmentos de {doc_id}")
-
-    return collection.count()
+        logger.error(f"Error inesperado en la ingesta: {e}")

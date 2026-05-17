@@ -62,6 +62,10 @@ async def get_document_status(doc_id: UUID):
             if current_progress >= 100:
                 break
 
+            if entry["status"] == IngestionStatus.FAILED:
+                yield f"data: {json.dumps({'status': 'failed', 'error': 'Error inesperado en la ingesta.'})}\n\n"
+                break
+
             await asyncio.sleep(1)
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
