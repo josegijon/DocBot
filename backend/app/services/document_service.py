@@ -19,6 +19,9 @@ async def process_upload(file: UploadFile, doc_id: str) -> Path:
         raise InvalidFileTypeException("Error: el formato del archivo no es válido.")
 
     content = b""
+
+    logger.info(f"Iniciando lectura del archivo {file.filename}")
+
     while True:
         chunk = await file.read(settings.CHUNK_READ_SIZE)
         if not chunk:
@@ -32,9 +35,13 @@ async def process_upload(file: UploadFile, doc_id: str) -> Path:
                 f"El archivo supera el límite de {settings.MAX_PDF_SIZE_MB}MB."
             )
 
+    logger.info(f"Guardando archivo {doc_id} en disco.")
+
     upload_dir = Path(settings.UPLOAD_DIR)
     upload_dir.mkdir(parents=True, exist_ok=True)
     file_path = upload_dir / f"{doc_id}.pdf"
+
+    logger.info(f"Archivo {doc_id} guardado correctamente en {file_path}.")
 
     try:
         file_path.write_bytes(content)
