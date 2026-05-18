@@ -48,11 +48,13 @@ class Settings(BaseSettings):
             de fuente incluido en las respuestas generadas.
         CHUNK_READ_SIZE: Tamaño del buffer (en bytes) utilizado al leer
             archivos para dividirlos en fragmentos (chunks).
+        SSE_POLL_INTERVAL_SECONDS: Intervalo de tiempo (en segundos)
+            para las peticiones de Server-Sent Events (SSE).
     """
 
     GROQ_API_KEY: str
-    CHROMA_PERSIST_DIR: Path = "./storage/chroma"
-    UPLOAD_DIR: Path = "./storage/uploads"
+    CHROMA_PERSIST_DIR: Path = Path("./storage/chroma")
+    UPLOAD_DIR: Path = Path("./storage/uploads")
     MAX_PDF_SIZE_MB: int = 50
     CORS_ORIGINS: list[str] = ["http://localhost:5173"]
     GROQ_MODEL: str = "llama-3.3-70b-versatile"
@@ -65,6 +67,7 @@ class Settings(BaseSettings):
     CHUNK_OVERLAP: int = 150
     SOURCE_SNIPPET_LENGTH: int = 100
     CHUNK_READ_SIZE: int = 1 * 1024 * 1024
+    SSE_POLL_INTERVAL_SECONDS: int = 1
 
     model_config = SettingsConfigDict(
         env_file=".env",

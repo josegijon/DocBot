@@ -17,6 +17,8 @@ from app.rag.progress import (
 )
 from app.services.document_service import process_upload
 from app.api.deps import get_embeddings_model
+from app.core.config import settings
+
 
 router = APIRouter(prefix="/api/documents", tags=["Documents"])
 
@@ -67,6 +69,6 @@ async def get_document_status(doc_id: UUID):
                 yield f"data: {json.dumps({'status': 'failed', 'error': 'Error inesperado en la ingesta.'})}\n\n"
                 break
 
-            await asyncio.sleep(1)
+            await asyncio.sleep(settings.SSE_POLL_INTERVAL_SECONDS)
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
