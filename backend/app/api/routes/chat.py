@@ -9,13 +9,14 @@ import json
 import logging
 from uuid import UUID
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 
 from app.core.exceptions import AuthException, LLMException
 from app.models.chat import ChatRequest
 from app.rag.memory import delete_session, get_history
 from app.services.chat_service import stream_chat_response
+from app.api.deps import get_embeddings_model, get_groq_client, get_rerank_model
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,10 @@ router = APIRouter(prefix="/api/chat", tags=["Chat"])
 
 @router.post("/")
 async def process_chat_message(
-    request: Request, chat_request: ChatRequest
+    chat_request: ChatRequest,
+    embeddings_model=Depends(get_embeddings_model),
+    rerank_model=Depends(get_rerank_model),
+    groq_client=Depends(get_groq_client),
 ) -> StreamingResponse:
     """Procesa una pregunta del usuario y devuelve la respuesta en formato SSE.
 
@@ -33,16 +37,14 @@ async def process_chat_message(
     junto con las fuentes recuperadas como un stream de eventos.
 
     Args:
-        request: Objeto de solicitud de FastAPI con los modelos cargados
-            en el estado de la aplicación.
         chat_request: Cuerpo de la petición con el mensaje, documento y sesión.
+        embeddings_model: Modelo de embeddings para el procesamiento del mensaje.
+        rerank_model: Modelo de reranking para priorizar resultados relevantes.
+        groq_client: Cliente para la interacción con el servicio Groq.
 
     Returns:
         StreamingResponse con los eventos en formato Server-Sent Events.
     """
-    embeddings_model = request.app.state.embeddings_model
-    rerank_model = request.app.state.reranker
-    groq_client = request.app.state.groq_client
 
     async def generate_sse_events():
         try:
@@ -59,17 +61,17 @@ async def process_chat_message(
                 elif event_type == "sources":
                     yield f"data: {json.dumps({'sources': event_data})}\n\n"
 
-        except AuthException as e:
-            logger.error(f"Error de autenticación en el stream: {str(e)}")
-            yield f"event: error\ndata: {json.dumps({'type': 'auth_error', 'message': str(e)})}\n\n"
+        except AuthException as auth_error:
+            logger.error(f"Error de autenticación en el stream: {str(auth_error)}")
+            yield f"event: error\ndata: {json.dumps({'type': 'auth_error', 'message': str(auth_error)})}\n\n"
 
-        except LLMException as e:
-            logger.error(f"Error del servicio LLM en el stream: {str(e)}")
-            yield f"event: error\ndata: {json.dumps({'type': 'llm_error', 'message': str(e)})}\n\n"
+        except LLMException as llm_error:
+            logger.error(f"Error del servicio LLM en el stream: {str(llm_error)}")
+            yield f"event: error\ndata: {json.dumps({'type': 'llm_error', 'message': str(llm_error)})}\n\n"
 
-        except Exception as e:
-            logger.critical(f"Error inesperado en el stream: {str(e)}")
-            yield f"event: error\ndata: {json.dumps({'type': 'unexpected_error', 'message': str(e)})}\n\n"
+        except Exception as unexpected_error:
+            logger.critical(f"Error inesperado en el stream: {str(unexpected_error)}")
+            yield f"event: error\ndata: {json.dumps({'type': 'unexpected_error', 'message': str(unexpected_error)})}\n\n"
 
     return StreamingResponse(generate_sse_events(), media_type="text/event-stream")
 
