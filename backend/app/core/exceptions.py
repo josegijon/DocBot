@@ -73,6 +73,24 @@ class VectorStoreException(IngestionException):
     pass
 
 
+class InvalidFileTypeException(IngestionException):
+    """El archivo no es de tipo PDF."""
+
+    pass
+
+
+class FileTooLargeException(IngestionException):
+    """El archivo PDF supera el límite de tamaño."""
+
+    pass
+
+
+class FileWriteException(IngestionException):
+    """Error al escribir en disco."""
+
+    pass
+
+
 class VectorStoreInternalException(VectorStoreException):
     """Errores de infraestructura (corrupción, permisos, disco)."""
 

@@ -13,6 +13,9 @@ from app.core.exceptions import (
     DocBotException,
     DocumentNotFoundException,
     EmptyQueryError,
+    FileTooLargeException,
+    FileWriteException,
+    InvalidFileTypeException,
     LLMException,
     PDFNotFoundException,
     VectorStoreInternalException,
@@ -143,4 +146,50 @@ async def vector_store_internal_handler(
     Returns:
         Respuesta JSON con código de estado 500 Internal Server Error.
     """
+    return _build_error_response(request, exc, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+async def invalid_file_type_handler(
+    request: Request, exc: InvalidFileTypeException
+) -> JSONResponse:
+    """Maneja errores cuando el documento no es de tipo PDF.
+
+    Args:
+        request: Objeto de solicitud de FastAPI.
+        exc: Instancia de InvalidFileTypeException con el detalle del error.
+
+    Returns:
+        Respuesta JSON con código de estado 400 Bad Request.
+    """
+
+    return _build_error_response(request, exc, status.HTTP_400_BAD_REQUEST)
+
+
+async def file_too_large_handler(
+    request: Request, exc: FileTooLargeException
+) -> JSONResponse:
+    """Maneja errores cuando un documento supera el límite de tamaño.
+
+    Args:
+        request: Objeto de solicitud de FastAPI.
+        exc: Instancia de FileTooLargeException con el detalle del error.
+
+    Returns:
+        Respuesta JSON con código de estado 413 Content Too Large.
+    """
+
+    return _build_error_response(request, exc, status.HTTP_413_CONTENT_TOO_LARGE)
+
+
+async def file_write_handler(request: Request, exc: FileWriteException) -> JSONResponse:
+    """Maneja errores de escritura en disco.
+
+    Args:
+        request: Objeto de solicitud de FastAPI.
+        exc: Instancia de FileWriteException con el detalle del error.
+
+    Returns:
+        Respuesta JSON con código de estado 500 Internal Server Error.
+    """
+
     return _build_error_response(request, exc, status.HTTP_500_INTERNAL_SERVER_ERROR)
