@@ -79,7 +79,7 @@ def retrieve(
 
     try:
         results = collection.query(
-            query_embeddings=[query_vectors],
+            query_embeddings=query_vectors,
             n_results=settings.N_RESULTS_RETRIEVE,
         )
     except Exception as e:
