@@ -10,7 +10,6 @@ import sqlite3
 
 import chromadb
 from chromadb.api import ClientAPI
-from chromadb.errors import InvalidConfigurationError
 
 from app.core.config import settings
 from app.core.exceptions import VectorStoreInternalException
@@ -61,12 +60,6 @@ def get_chroma_client(doc_id: str) -> ClientAPI:
         )
         raise VectorStoreInternalException(
             "El archivo de la base de datos vectorial parece estar dañado o corrupto."
-        )
-
-    except InvalidConfigurationError as e:
-        logger.error(f"Configuración inválida al inicializar ChromaDB: {str(e)}")
-        raise VectorStoreInternalException(
-            "Error de configuración en el motor de base de datos vectorial."
         )
 
     except Exception as e:
