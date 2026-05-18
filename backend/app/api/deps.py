@@ -26,7 +26,7 @@ def get_rerank_model(request: Request) -> CrossEncoder:
     Returns:
         CrossEncoder: Modelo de reranking cargado en el estado de la aplicación.
     """
-    return request.app.state.reranker
+    return request.app.state.rerank_model
 
 
 def get_groq_client(request: Request) -> AsyncGroq:
