@@ -1,4 +1,5 @@
 import logging
+from typing import AsyncGenerator
 
 from fastapi import (
     APIRouter,
@@ -20,6 +21,7 @@ from app.rag.progress import (
 from app.services.document_service import process_upload
 from app.api.deps import get_embeddings_model
 from app.core.config import settings
+from app.core.exceptions import DocumentNotFoundException
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +34,7 @@ async def upload_document(
     background_tasks: BackgroundTasks,
     file: UploadFile,
     embeddings_model=Depends(get_embeddings_model),
-):
+) -> UploadResponse:
     doc_id = str(uuid4())
 
     logger.info(f"Iniciando subida de archivo: {file.filename} - {doc_id}")
@@ -55,8 +57,14 @@ async def upload_document(
 
 
 @router.get("/{doc_id}/status")
-async def get_document_status(doc_id: UUID):
-    async def event_generator():
+async def get_document_status(doc_id: UUID) -> StreamingResponse:
+    async def event_generator() -> AsyncGenerator[str, None]:
+        if get_progress(str(doc_id)) is None:
+            logger.error(f"Documento no encontrado en el sistema: {doc_id}")
+            raise DocumentNotFoundException(
+                f"Documento no encontrado en el sistema: {doc_id}"
+            )
+
         while True:
             entry = get_progress(str(doc_id)) or {
                 "status": IngestionStatus.PROCESSING,
