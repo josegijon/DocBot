@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import (
     APIRouter,
     Depends,
@@ -19,6 +21,7 @@ from app.services.document_service import process_upload
 from app.api.deps import get_embeddings_model
 from app.core.config import settings
 
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/documents", tags=["Documents"])
 
@@ -32,6 +35,8 @@ async def upload_document(
 ):
     doc_id = str(uuid4())
 
+    logger.info(f"Iniciando subida de archivo: {file.filename} - {doc_id}")
+
     file_path = await process_upload(file, doc_id)
 
     background_tasks.add_task(
@@ -41,6 +46,8 @@ async def upload_document(
         embeddings_model,
     )
     # Para producción se usaria Celery o ARQ con worker separado. Aquí añadiria complejidad y costo.
+
+    logger.info(f"Subida de archivo {file.filename} - {doc_id} finalizada")
 
     return UploadResponse(
         doc_id=doc_id, filename=file.filename, status=IngestionStatus.PROCESSING
