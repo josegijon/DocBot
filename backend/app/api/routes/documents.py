@@ -35,38 +35,68 @@ async def upload_document(
     file: UploadFile,
     embeddings_model=Depends(get_embeddings_model),
 ) -> UploadResponse:
-    doc_id = str(uuid4())
+    """
+    Sube un documento al sistema y comienza su procesamiento en segundo plano.
 
-    logger.info(f"Iniciando subida de archivo: {file.filename} - {doc_id}")
+    Args:
+        background_tasks (BackgroundTasks): Tareas en segundo plano para procesar el archivo.
+        file (UploadFile): Archivo a subir.
+        embeddings_model: Modelo de embeddings para procesar el archivo.
 
-    file_path = await process_upload(file, doc_id)
+    Returns:
+        UploadResponse: Respuesta con el ID del documento, nombre del archivo y estado inicial.
+    """
+    document_id = str(uuid4())
+
+    logger.info(f"Iniciando subida de archivo: {file.filename} - {document_id}")
+
+    file_path = await process_upload(file, document_id)
 
     background_tasks.add_task(
         ingest,
         str(file_path),
-        doc_id,
+        document_id,
         embeddings_model,
     )
-    # Para producción se usaria Celery o ARQ con worker separado. Aquí añadiria complejidad y costo.
+    # Para producción se usaría Celery o ARQ con worker separado. Aquí añadiría complejidad y costo.
 
-    logger.info(f"Subida de archivo {file.filename} - {doc_id} finalizada")
+    logger.info(f"Subida de archivo {file.filename} - {document_id} finalizada")
 
     return UploadResponse(
-        doc_id=doc_id, filename=file.filename, status=IngestionStatus.PROCESSING
+        doc_id=document_id, filename=file.filename, status=IngestionStatus.PROCESSING
     )
 
 
-@router.get("/{doc_id}/status")
-async def get_document_status(doc_id: UUID) -> StreamingResponse:
+@router.get("/{document_id}/status")
+async def get_document_status(document_id: UUID) -> StreamingResponse:
+    """
+    Obtiene el estado de procesamiento de un documento en tiempo real.
+
+    Args:
+        document_id (UUID): ID del documento a consultar.
+
+    Returns:
+        StreamingResponse: Respuesta en tiempo real con el estado y progreso del documento.
+    """
+
     async def event_generator() -> AsyncGenerator[str, None]:
-        if get_progress(str(doc_id)) is None:
-            logger.error(f"Documento no encontrado en el sistema: {doc_id}")
+        """
+        Generador de eventos para transmitir el estado y progreso de un documento.
+
+        Yields:
+            str: Cadena en formato JSON con el estado y progreso del documento.
+
+        Raises:
+            DocumentNotFoundException: Si el documento no se encuentra en el sistema.
+        """
+        if get_progress(str(document_id)) is None:
+            logger.error(f"Documento no encontrado en el sistema: {document_id}")
             raise DocumentNotFoundException(
-                f"Documento no encontrado en el sistema: {doc_id}"
+                f"Documento no encontrado en el sistema: {document_id}"
             )
 
         while True:
-            entry = get_progress(str(doc_id)) or {
+            entry = get_progress(str(document_id)) or {
                 "status": IngestionStatus.PROCESSING,
                 "progress": 0,
             }
