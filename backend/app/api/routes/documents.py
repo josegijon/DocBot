@@ -1,8 +1,8 @@
 from fastapi import (
     APIRouter,
+    Depends,
     UploadFile,
     BackgroundTasks,
-    Request,
 )
 from fastapi.responses import StreamingResponse
 from app.models.document import UploadResponse
@@ -16,6 +16,7 @@ from app.rag.progress import (
     IngestionStatus,
 )
 from app.services.document_service import process_upload
+from app.api.deps import get_embeddings_model
 
 router = APIRouter(prefix="/api/documents", tags=["Documents"])
 
@@ -23,19 +24,19 @@ router = APIRouter(prefix="/api/documents", tags=["Documents"])
 # --- Endpoint ---
 @router.post("/upload", response_model=UploadResponse)
 async def upload_document(
-    request: Request, background_tasks: BackgroundTasks, file: UploadFile
+    background_tasks: BackgroundTasks,
+    file: UploadFile,
+    embeddings_model=Depends(get_embeddings_model),
 ):
     doc_id = str(uuid4())
 
     file_path = await process_upload(file, doc_id)
 
-    client = request.app.state.embeddings_model
-
     background_tasks.add_task(
         ingest,
         str(file_path),
         doc_id,
-        client,
+        embeddings_model,
     )
     # Para producción se usaria Celery o ARQ con worker separado. Aquí añadiria complejidad y costo.
 
