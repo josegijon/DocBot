@@ -13,15 +13,15 @@ from uuid import UUID, uuid4
 import asyncio
 import json
 
-from app.rag.ingestor import ingest
 from app.rag.progress import (
     get_progress,
     IngestionStatus,
 )
-from app.services.document_service import process_upload
 from app.api.deps import get_embeddings_model
 from app.core.config import settings
 from app.core.exceptions import DocumentNotFoundException
+from app.rag.ingestor import process_pdf_ingestion
+from app.services.document_service import process_pdf_upload
 
 logger = logging.getLogger(__name__)
 
@@ -50,10 +50,10 @@ async def upload_document(
 
     logger.info(f"Iniciando subida de archivo: {file.filename} - {document_id}")
 
-    file_path = await process_upload(file, document_id)
+    file_path = await process_pdf_upload(file, document_id)
 
     background_tasks.add_task(
-        ingest,
+        process_pdf_ingestion,
         str(file_path),
         document_id,
         embeddings_model,
@@ -111,7 +111,7 @@ async def get_document_status(document_id: UUID) -> StreamingResponse:
                 break
 
             if entry["status"] == IngestionStatus.FAILED:
-                yield f"data: {json.dumps({'status': 'failed', 'error': 'Error inesperado en la ingesta.'})}\n\n"
+                yield f"data: {json.dumps({'status': 'failed', 'error': 'Error inesperado en la process_pdf_ingestiona.'})}\n\n"
                 break
 
             await asyncio.sleep(settings.SSE_POLL_INTERVAL_SECONDS)
