@@ -17,11 +17,11 @@ from app.rag.progress import (
     get_progress,
     IngestionStatus,
 )
-from app.services.document_service import process_upload
 from app.api.deps import get_embeddings_model
 from app.core.config import settings
 from app.core.exceptions import DocumentNotFoundException
 from app.rag.ingestor import process_pdf_ingestion
+from app.services.document_service import process_pdf_upload
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +50,7 @@ async def upload_document(
 
     logger.info(f"Iniciando subida de archivo: {file.filename} - {document_id}")
 
-    file_path = await process_upload(file, document_id)
+    file_path = await process_pdf_upload(file, document_id)
 
     background_tasks.add_task(
         process_pdf_ingestion,
