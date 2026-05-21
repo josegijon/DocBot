@@ -19,12 +19,12 @@ from app.core.exceptions import (
     FileWriteException,
     InvalidFileTypeException,
 )
-from app.rag.summary_cache import get_summary, save_summary
 from app.rag.chroma_client import get_chroma_client
 from app.rag.generator import generate
 from app.rag.prompt_builder import build_prompt
 from app.rag.progress import delete_progress
 from app.rag.retriever import retrieve
+from app.rag.summary_cache import delete_summary, get_summary, save_summary
 
 logger = logging.getLogger(__name__)
 
@@ -39,17 +39,16 @@ async def process_pdf_upload(uploaded_pdf_file: UploadFile, document_id: str) ->
     y escribe el fichero resultante en el directorio de cargas.
 
     Args:
-        uploaded_pdf_file (UploadFile): Instancia del archivo subido.
-        document_id (str): Identificador único que se emplea como nombre
-            del archivo almacenado (sin extensión).
+        uploaded_pdf_file (UploadFile): Archivo subido por el cliente.
+        document_id (str): Identificador único usado como nombre de archivo
+            (sin extensión).
 
     Returns:
-        pathlib.Path: Ruta absoluta al archivo guardado.
+        Path: Ruta absoluta al archivo guardado.
 
     Raises:
         InvalidFileTypeException: Si el archivo no es de tipo PDF.
-        FileTooLargeException: Si el tamaño supera la configuración
-            `settings.MAX_PDF_SIZE_MB`.
+        FileTooLargeException: Si el tamaño supera `settings.MAX_PDF_SIZE_MB`.
         FileWriteException: Si ocurre un error al escribir el fichero.
     """
     if uploaded_pdf_file.content_type != "application/pdf":
@@ -94,13 +93,13 @@ async def process_pdf_upload(uploaded_pdf_file: UploadFile, document_id: str) ->
 def delete_document(document_id: str) -> None:
     """Eliminar todos los artefactos asociados a un documento.
 
-    Esta función elimina el progreso asociado, la colección en Chroma
-    y el fichero PDF del sistema de archivos.
+    Elimina el resumen cacheado, el progreso de ingesta, la colección
+    asociada en Chroma y el fichero PDF almacenado en disco.
 
     Args:
         document_id (str): Identificador único del documento.
     """
-
+    delete_summary(document_id)
     delete_progress(document_id)
     client = get_chroma_client(document_id)
     client.delete_collection(name=document_id)
@@ -113,18 +112,18 @@ async def generate_summary(
 ) -> AsyncGenerator:
     """Generar un resumen en streaming para un documento.
 
-    Comprueba si existe un resumen cacheado; si no, recupera fragmentos
-    relevantes mediante el modelo de embeddings, construye el prompt y
-    genera el resumen en streaming. Emite tuplas ("token", str) por cada
-    token generado y, al final, ("done", document_id).
+    Si existe un resumen cacheado lo emite; en caso contrario recupera
+    fragmentos relevantes mediante el modelo de embeddings, construye el
+    prompt y genera el resumen en streaming.
 
     Args:
         document_id (str): Identificador único del documento.
-        embedding_model (SentenceTransformer): Modelo de embeddings usado para la recuperación.
+        embedding_model (SentenceTransformer): Modelo de embeddings para recuperar fragmentos.
         groq_client (AsyncGroq): Cliente asíncrono para la generación en streaming.
 
     Yields:
-        AsyncGenerator: Tuplas con los tokens generados y señal de finalización.
+        tuple: Tuplas de la forma ("token", str) por cada token generado, y
+            al final ("done", document_id) cuando termina.
     """
     logger.info(f"Iniciando resumen del documento {document_id}.")
 
