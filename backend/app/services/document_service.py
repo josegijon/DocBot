@@ -4,10 +4,14 @@ Este módulo expone funciones para almacenar PDFs subidos y eliminar
 documentos asociados (progreso, colección y archivo en disco).
 """
 
+import asyncio
 import logging
 from pathlib import Path
+from typing import AsyncGenerator
 
 from fastapi import UploadFile
+from groq import AsyncGroq
+from sentence_transformers import SentenceTransformer
 
 from app.core.config import settings
 from app.core.exceptions import (
@@ -15,10 +19,17 @@ from app.core.exceptions import (
     FileWriteException,
     InvalidFileTypeException,
 )
+from app.rag.cache_summary import get_summary, save_summary
 from app.rag.chroma_client import get_chroma_client
+from app.rag.generator import generate
+from app.rag.prompt_builder import build_prompt
 from app.rag.progress import delete_progress
+from app.rag.retriever import retrieve
 
 logger = logging.getLogger(__name__)
+
+
+_SUMMARY_PROMPT = "Resumen del documento"
 
 
 async def process_pdf_upload(uploaded_pdf_file: UploadFile, document_id: str) -> Path:
@@ -95,3 +106,47 @@ def delete_document(document_id: str) -> None:
     client.delete_collection(name=document_id)
 
     (Path(settings.UPLOAD_DIR) / f"{document_id}.pdf").unlink(missing_ok=True)
+
+
+async def generate_summary(
+    document_id: str, embedding_model: SentenceTransformer, groq_client: AsyncGroq
+) -> AsyncGenerator:
+    """Generar un resumen en streaming para un documento.
+
+    Comprueba si existe un resumen cacheado; si no, recupera fragmentos
+    relevantes mediante el modelo de embeddings, construye el prompt y
+    genera el resumen en streaming. Emite tuplas ("token", str) por cada
+    token generado y, al final, ("done", document_id).
+
+    Args:
+        document_id (str): Identificador único del documento.
+        embedding_model (SentenceTransformer): Modelo de embeddings usado para la recuperación.
+        groq_client (AsyncGroq): Cliente asíncrono para la generación en streaming.
+
+    Yields:
+        AsyncGenerator: Tuplas con los tokens generados y señal de finalización.
+    """
+    logger.info(f"Iniciando resumen del documento {document_id}.")
+
+    accumulated_summary = get_summary(document_id)
+
+    if accumulated_summary is None:
+        retrieved_chunks = await asyncio.to_thread(
+            retrieve, _SUMMARY_PROMPT, document_id, embedding_model
+        )
+
+        prompt = build_prompt(_SUMMARY_PROMPT, retrieved_chunks, [])
+
+        accumulated_summary = ""
+
+        async for token in generate(prompt, groq_client):
+            accumulated_summary += token
+            yield ("token", token)
+
+        save_summary(document_id, accumulated_summary)
+    else:
+        yield ("token", accumulated_summary)
+
+    logger.info(f"Resumen del documento {document_id} finalizado.")
+
+    yield ("done", document_id)
