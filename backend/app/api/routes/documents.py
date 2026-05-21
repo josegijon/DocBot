@@ -21,7 +21,10 @@ from app.api.deps import get_embeddings_model
 from app.core.config import settings
 from app.core.exceptions import DocumentNotFoundException
 from app.rag.ingestor import process_pdf_ingestion
-from app.services.document_service import process_pdf_upload
+from app.services.document_service import (
+    process_pdf_upload,
+    delete_document as delete_document_service,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -117,3 +120,12 @@ async def get_document_status(document_id: UUID) -> StreamingResponse:
             await asyncio.sleep(settings.SSE_POLL_INTERVAL_SECONDS)
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
+@router.delete("/{document_id}")
+async def delete_document(document_id: UUID) -> dict[str, str]:
+    await asyncio.to_thread(delete_document_service, str(document_id))
+    return {
+        "status": "success",
+        "message": f"Documento {str(document_id)} eliminado correctamente.",
+    }
