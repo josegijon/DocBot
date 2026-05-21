@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 _summary_cache: dict[str, str] = {}
 
 
-def get_summary(document_id) -> str | None:
+def get_summary(document_id: str) -> str | None:
     """Recupera el resumen almacenado para un documento.
 
     Args:
@@ -25,7 +25,7 @@ def get_summary(document_id) -> str | None:
     return _summary_cache.get(document_id)
 
 
-def save_summary(document_id, summary) -> None:
+def save_summary(document_id: str, summary: str) -> None:
     """Guarda o actualiza el resumen de un documento en la caché.
 
     Args:
@@ -38,7 +38,7 @@ def save_summary(document_id, summary) -> None:
     _summary_cache[document_id] = summary
 
 
-def delete_summary(document_id) -> None:
+def delete_summary(document_id: str) -> None:
     """Elimina el resumen asociado a un `document_id` de la caché.
 
     Args:

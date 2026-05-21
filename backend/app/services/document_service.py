@@ -142,7 +142,8 @@ async def generate_summary(
             accumulated_summary += token
             yield ("token", token)
 
-        save_summary(document_id, accumulated_summary)
+        if accumulated_summary.strip():
+            save_summary(document_id, accumulated_summary)
     else:
         yield ("token", accumulated_summary)
 
