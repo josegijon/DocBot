@@ -19,7 +19,7 @@ from app.core.exceptions import (
     FileWriteException,
     InvalidFileTypeException,
 )
-from app.rag.cache_summary import get_summary, save_summary
+from app.rag.summary_cache import get_summary, save_summary
 from app.rag.chroma_client import get_chroma_client
 from app.rag.generator import generate
 from app.rag.prompt_builder import build_prompt
