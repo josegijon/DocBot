@@ -11,6 +11,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
+from groq import AsyncGroq
+from sentence_transformers import CrossEncoder, SentenceTransformer
 
 from app.core.exceptions import AuthException, LLMException
 from app.models.chat import ChatRequest
@@ -27,9 +29,9 @@ router = APIRouter(prefix="/api/chat", tags=["Chat"])
 @router.post("/")
 async def process_chat_message(
     chat_request: ChatRequest,
-    embeddings_model=Depends(get_embeddings_model),
-    rerank_model=Depends(get_rerank_model),
-    groq_client=Depends(get_groq_client),
+    embeddings_model: SentenceTransformer = Depends(get_embeddings_model),
+    rerank_model: CrossEncoder = Depends(get_rerank_model),
+    groq_client: AsyncGroq = Depends(get_groq_client),
 ) -> StreamingResponse:
     """Procesa una pregunta del usuario y devuelve la respuesta en formato SSE.
 

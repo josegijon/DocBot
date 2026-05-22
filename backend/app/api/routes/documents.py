@@ -6,6 +6,8 @@ from uuid import UUID, uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, UploadFile
 from fastapi.responses import StreamingResponse
+from groq import AsyncGroq
+from sentence_transformers import SentenceTransformer
 
 from app.api.deps import get_embeddings_model, get_groq_client
 from app.core.config import settings
@@ -29,7 +31,7 @@ router = APIRouter(prefix="/api/documents", tags=["Documents"])
 async def upload_document(
     background_tasks: BackgroundTasks,
     uploaded_file: UploadFile,
-    embeddings_model=Depends(get_embeddings_model),
+    embeddings_model: SentenceTransformer = Depends(get_embeddings_model),
 ) -> UploadResponse:
     """
     Sube un documento al sistema y comienza su procesamiento en segundo plano.
@@ -124,8 +126,8 @@ async def get_document_status(document_id: UUID) -> StreamingResponse:
 @router.get("/{document_id}/summary")
 async def stream_document_summary(
     document_id: UUID,
-    embeddings_model=Depends(get_embeddings_model),
-    groq_client=Depends(get_groq_client),
+    embeddings_model: SentenceTransformer = Depends(get_embeddings_model),
+    groq_client: AsyncGroq = Depends(get_groq_client),
 ) -> StreamingResponse:
     """
     Genera el resumen de un documento y lo transmite mediante SSE.
