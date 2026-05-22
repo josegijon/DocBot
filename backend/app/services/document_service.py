@@ -19,6 +19,7 @@ from app.core.exceptions import (
     FileWriteException,
     InvalidFileTypeException,
 )
+from app.models.stream import StreamEvent
 from app.rag.chroma_client import get_chroma_client
 from app.rag.generator import generate
 from app.rag.prompt_builder import build_prompt
@@ -30,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 _SUMMARY_PROMPT = "Resumen del documento"
+_BYTES_IN_MB: int = 1024**2
 
 
 async def process_pdf_upload(uploaded_pdf_file: UploadFile, document_id: str) -> Path:
@@ -64,7 +66,7 @@ async def process_pdf_upload(uploaded_pdf_file: UploadFile, document_id: str) ->
         if not chunk_bytes:
             break
         pdf_bytes += chunk_bytes
-        if len(pdf_bytes) / (1024**2) > settings.MAX_PDF_SIZE_MB:
+        if len(pdf_bytes) / (_BYTES_IN_MB) > settings.MAX_PDF_SIZE_MB:
             logger.error(
                 f"El archivo supera el límite de {settings.MAX_PDF_SIZE_MB}MB."
             )
@@ -75,15 +77,16 @@ async def process_pdf_upload(uploaded_pdf_file: UploadFile, document_id: str) ->
     logger.info(f"Guardando archivo {document_id} en disco.")
 
     upload_dir = Path(settings.UPLOAD_DIR)
-    upload_dir.mkdir(parents=True, exist_ok=True)
+    await asyncio.to_thread(upload_dir.mkdir, parents=True, exist_ok=True)
     saved_pdf_path = upload_dir / f"{document_id}.pdf"
 
     try:
-        saved_pdf_path.write_bytes(pdf_bytes)
+        await asyncio.to_thread(saved_pdf_path.write_bytes, pdf_bytes)
     except OSError as error:
+        logger.error(f"Fallo de escritura al guardar PDF {document_id}")
         raise FileWriteException(
             f"No se pudo guardar el archivo en el servidor: {str(error)}"
-        )
+        ) from error
 
     logger.info(f"Archivo {document_id} guardado correctamente en {saved_pdf_path}.")
 
@@ -109,7 +112,7 @@ def delete_document(document_id: str) -> None:
 
 async def generate_summary(
     document_id: str, embedding_model: SentenceTransformer, groq_client: AsyncGroq
-) -> AsyncGenerator:
+) -> AsyncGenerator[tuple[str, str], None]:
     """Generar un resumen en streaming para un documento.
 
     Si existe un resumen cacheado lo emite; en caso contrario recupera
@@ -140,13 +143,13 @@ async def generate_summary(
 
         async for token in generate(prompt, groq_client):
             accumulated_summary += token
-            yield ("token", token)
+            yield (StreamEvent.EVENT_TOKEN, token)
 
         if accumulated_summary.strip():
             save_summary(document_id, accumulated_summary)
     else:
-        yield ("token", accumulated_summary)
+        yield (StreamEvent.EVENT_TOKEN, accumulated_summary)
 
     logger.info(f"Resumen del documento {document_id} finalizado.")
 
-    yield ("done", document_id)
+    yield (StreamEvent.EVENT_DONE, document_id)

@@ -11,6 +11,7 @@ from app.api.deps import get_embeddings_model, get_groq_client
 from app.core.config import settings
 from app.core.exceptions import AuthException, DocumentNotFoundException, LLMException
 from app.models.document import UploadResponse
+from app.models.stream import StreamEvent
 from app.rag.ingestor import process_pdf_ingestion
 from app.rag.progress import get_progress, IngestionStatus
 from app.services.document_service import (
@@ -145,9 +146,9 @@ async def stream_document_summary(
                 embeddings_model,
                 groq_client,
             ):
-                if event_type == "token":
+                if event_type == StreamEvent.EVENT_TOKEN:
                     yield f"data: {json.dumps({'token': event_data})}\n\n"
-                elif event_type == "done":
+                elif event_type == StreamEvent.EVENT_DONE:
                     yield f"data: {json.dumps({'done': True})}\n\n"
 
         except AuthException as auth_error:

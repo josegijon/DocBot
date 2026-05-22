@@ -1,3 +1,10 @@
+"""Servicio de chat: streaming de respuestas usando pipeline RAG.
+
+Este módulo expone utilidades para generar respuestas de asistente en modo
+streaming: recupera contexto y fragmentos relevantes, reordena por relevancia,
+construye el prompt y delega la generación token a token.
+"""
+
 import asyncio
 import logging
 from typing import AsyncGenerator
@@ -7,6 +14,7 @@ from sentence_transformers import CrossEncoder, SentenceTransformer
 
 from app.core.config import settings
 from app.models.chat import MessageRole
+from app.models.stream import StreamEvent
 from app.rag.generator import generate
 from app.rag.memory import add_message, get_history
 from app.rag.prompt_builder import build_prompt
@@ -32,20 +40,20 @@ async def stream_chat_response(
     utilizadas como referencia.
 
     Args:
-        user_message: Mensaje del usuario que se desea procesar.
-        document_id: Identificador del documento sobre el cual se realiza la consulta.
-        session_id: Identificador único de la sesión de chat.
-        embedding_model: Modelo de embeddings utilizado para la recuperación
-            de fragmentos semánticamente relevantes.
-        reranker: Modelo de reranking para reordenar los fragmentos por
+        user_message (str): Mensaje del usuario a procesar.
+        document_id (str): Identificador del documento consultado.
+        session_id (str): Identificador único de la sesión de chat.
+        embedding_model (SentenceTransformer): Modelo de embeddings para la
+            recuperación semántica de fragmentos.
+        reranker (CrossEncoder): Modelo para reordenar fragmentos por
             relevancia respecto a la consulta.
-        groq_client: Cliente asíncrono de Groq para la generación de texto.
+        groq_client (AsyncGroq): Cliente asíncrono de Groq para generación.
 
     Yields:
-        Tuplas con el tipo de evento y los datos asociados:
-        - ``("token", str)``: Cada token generado durante la respuesta.
-        - ``("sources", list[dict])``: Lista de fuentes al finalizar el stream,
-          con las claves ``"page"`` y ``"text"``.
+        tuple: Pares ``(evento, datos)`` donde:
+            - ``("token", str)``: cada token generado durante la respuesta.
+            - ``("sources", list[dict])``: lista de fuentes con claves
+              ``"page"`` y ``"text"`` al finalizar el stream.
     """
     logger.info(
         f"Iniciando stream_chat_response | session_id: {session_id} | document_id: {document_id}"
@@ -66,7 +74,7 @@ async def stream_chat_response(
 
     async for token in generate(prompt, groq_client):
         accumulated_response += token
-        yield ("token", token)
+        yield (StreamEvent.EVENT_TOKEN, token)
 
     add_message(
         str(session_id), role=MessageRole.ASSISTANT, content=accumulated_response
@@ -85,4 +93,4 @@ async def stream_chat_response(
     logger.info(
         f"Stream finalizado | session_id: {session_id} | tokens generados: {len(accumulated_response)}"
     )
-    yield ("sources", citation_sources)
+    yield (StreamEvent.EVENT_SOURCES, citation_sources)
