@@ -1,11 +1,17 @@
-"""
-Servicio para procesar y guardar archivos PDF subidos por los usuarios.
+"""Servicio para procesar y guardar archivos PDF subidos por los usuarios.
+
+Este módulo expone funciones para almacenar PDFs subidos y eliminar
+documentos asociados (progreso, colección y archivo en disco).
 """
 
+import asyncio
 import logging
 from pathlib import Path
+from typing import AsyncGenerator
 
 from fastapi import UploadFile
+from groq import AsyncGroq
+from sentence_transformers import SentenceTransformer
 
 from app.core.config import settings
 from app.core.exceptions import (
@@ -13,40 +19,54 @@ from app.core.exceptions import (
     FileWriteException,
     InvalidFileTypeException,
 )
+from app.models.stream import StreamEvent
+from app.rag.chroma_client import get_chroma_client
+from app.rag.generator import generate
+from app.rag.prompt_builder import build_prompt
+from app.rag.progress import delete_progress
+from app.rag.retriever import retrieve
+from app.rag.summary_cache import delete_summary, get_summary, save_summary
 
 logger = logging.getLogger(__name__)
 
 
-async def process_pdf_upload(uploaded_file: UploadFile, document_id: str) -> Path:
-    """
-    Procesa un archivo PDF subido y lo guarda en el sistema de archivos.
+_SUMMARY_PROMPT = "Resumen del documento"
+_BYTES_IN_MB: int = 1024**2
+
+
+async def process_pdf_upload(uploaded_pdf_file: UploadFile, document_id: str) -> Path:
+    """Guardar un archivo PDF subido en el sistema de archivos.
+
+    Lee el contenido del archivo por chunks, valida el tipo y el tamaño,
+    y escribe el fichero resultante en el directorio de cargas.
 
     Args:
-        uploaded_file (UploadFile): Archivo subido por el usuario.
-        document_id (str): Identificador único para el archivo.
+        uploaded_pdf_file (UploadFile): Archivo subido por el cliente.
+        document_id (str): Identificador único usado como nombre de archivo
+            (sin extensión).
 
     Returns:
-        Path: Ruta del archivo guardado.
+        Path: Ruta absoluta al archivo guardado.
 
     Raises:
-        InvalidFileTypeException: Si el archivo no es un PDF.
-        FileTooLargeException: Si el archivo excede el tamaño máximo permitido.
-        FileWriteException: Si ocurre un error al guardar el archivo.
+        InvalidFileTypeException: Si el archivo no es de tipo PDF.
+        FileTooLargeException: Si el tamaño supera `settings.MAX_PDF_SIZE_MB`.
+        FileWriteException: Si ocurre un error al escribir el fichero.
     """
-    if uploaded_file.content_type != "application/pdf":
+    if uploaded_pdf_file.content_type != "application/pdf":
         logger.error("Error: el formato del archivo no es válido.")
         raise InvalidFileTypeException("Error: el formato del archivo no es válido.")
 
-    file_content = b""
+    pdf_bytes = b""
 
-    logger.info(f"Iniciando lectura del archivo {uploaded_file.filename}")
+    logger.info(f"Iniciando lectura del archivo {uploaded_pdf_file.filename}")
 
     while True:
-        file_chunk = await uploaded_file.read(settings.CHUNK_READ_SIZE)
-        if not file_chunk:
+        chunk_bytes = await uploaded_pdf_file.read(settings.CHUNK_READ_SIZE)
+        if not chunk_bytes:
             break
-        file_content += file_chunk
-        if len(file_content) / (1024**2) > settings.MAX_PDF_SIZE_MB:
+        pdf_bytes += chunk_bytes
+        if len(pdf_bytes) / (_BYTES_IN_MB) > settings.MAX_PDF_SIZE_MB:
             logger.error(
                 f"El archivo supera el límite de {settings.MAX_PDF_SIZE_MB}MB."
             )
@@ -56,17 +76,80 @@ async def process_pdf_upload(uploaded_file: UploadFile, document_id: str) -> Pat
 
     logger.info(f"Guardando archivo {document_id} en disco.")
 
-    upload_directory = Path(settings.UPLOAD_DIR)
-    upload_directory.mkdir(parents=True, exist_ok=True)
-    saved_file_path = upload_directory / f"{document_id}.pdf"
+    upload_dir = Path(settings.UPLOAD_DIR)
+    await asyncio.to_thread(upload_dir.mkdir, parents=True, exist_ok=True)
+    saved_pdf_path = upload_dir / f"{document_id}.pdf"
 
     try:
-        saved_file_path.write_bytes(file_content)
+        await asyncio.to_thread(saved_pdf_path.write_bytes, pdf_bytes)
     except OSError as error:
+        logger.error(f"Fallo de escritura al guardar PDF {document_id}")
         raise FileWriteException(
             f"No se pudo guardar el archivo en el servidor: {str(error)}"
+        ) from error
+
+    logger.info(f"Archivo {document_id} guardado correctamente en {saved_pdf_path}.")
+
+    return saved_pdf_path
+
+
+def delete_document(document_id: str) -> None:
+    """Eliminar todos los artefactos asociados a un documento.
+
+    Elimina el resumen cacheado, el progreso de ingesta, la colección
+    asociada en Chroma y el fichero PDF almacenado en disco.
+
+    Args:
+        document_id (str): Identificador único del documento.
+    """
+    delete_summary(document_id)
+    delete_progress(document_id)
+    client = get_chroma_client(document_id)
+    client.delete_collection(name=document_id)
+
+    (Path(settings.UPLOAD_DIR) / f"{document_id}.pdf").unlink(missing_ok=True)
+
+
+async def generate_summary(
+    document_id: str, embedding_model: SentenceTransformer, groq_client: AsyncGroq
+) -> AsyncGenerator[tuple[str, str], None]:
+    """Generar un resumen en streaming para un documento.
+
+    Si existe un resumen cacheado lo emite; en caso contrario recupera
+    fragmentos relevantes mediante el modelo de embeddings, construye el
+    prompt y genera el resumen en streaming.
+
+    Args:
+        document_id (str): Identificador único del documento.
+        embedding_model (SentenceTransformer): Modelo de embeddings para recuperar fragmentos.
+        groq_client (AsyncGroq): Cliente asíncrono para la generación en streaming.
+
+    Yields:
+        tuple: Tuplas de la forma ("token", str) por cada token generado, y
+            al final ("done", document_id) cuando termina.
+    """
+    logger.info(f"Iniciando resumen del documento {document_id}.")
+
+    accumulated_summary = get_summary(document_id)
+
+    if accumulated_summary is None:
+        retrieved_chunks = await asyncio.to_thread(
+            retrieve, _SUMMARY_PROMPT, document_id, embedding_model
         )
 
-    logger.info(f"Archivo {document_id} guardado correctamente en {saved_file_path}.")
+        prompt = build_prompt(_SUMMARY_PROMPT, retrieved_chunks, [])
 
-    return saved_file_path
+        accumulated_summary = ""
+
+        async for token in generate(prompt, groq_client):
+            accumulated_summary += token
+            yield (StreamEvent.EVENT_TOKEN, token)
+
+        if accumulated_summary.strip():
+            save_summary(document_id, accumulated_summary)
+    else:
+        yield (StreamEvent.EVENT_TOKEN, accumulated_summary)
+
+    logger.info(f"Resumen del documento {document_id} finalizado.")
+
+    yield (StreamEvent.EVENT_DONE, document_id)

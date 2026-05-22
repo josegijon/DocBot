@@ -1,46 +1,44 @@
-import logging
-from typing import AsyncGenerator
-
-from fastapi import (
-    APIRouter,
-    Depends,
-    UploadFile,
-    BackgroundTasks,
-)
-from fastapi.responses import StreamingResponse
-from app.models.document import UploadResponse
-from uuid import UUID, uuid4
 import asyncio
 import json
+import logging
+from typing import AsyncGenerator
+from uuid import UUID, uuid4
 
-from app.rag.progress import (
-    get_progress,
-    IngestionStatus,
-)
-from app.api.deps import get_embeddings_model
+from fastapi import APIRouter, BackgroundTasks, Depends, UploadFile
+from fastapi.responses import StreamingResponse
+from groq import AsyncGroq
+from sentence_transformers import SentenceTransformer
+
+from app.api.deps import get_embeddings_model, get_groq_client
 from app.core.config import settings
-from app.core.exceptions import DocumentNotFoundException
+from app.core.exceptions import AuthException, DocumentNotFoundException, LLMException
+from app.models.document import UploadResponse
+from app.models.stream import StreamEvent
 from app.rag.ingestor import process_pdf_ingestion
-from app.services.document_service import process_pdf_upload
+from app.rag.progress import get_progress, IngestionStatus
+from app.services.document_service import (
+    generate_summary,
+    process_pdf_upload,
+    delete_document as delete_document_service,
+)
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/documents", tags=["Documents"])
 
 
-# --- Endpoint ---
 @router.post("/upload", response_model=UploadResponse)
 async def upload_document(
     background_tasks: BackgroundTasks,
-    file: UploadFile,
-    embeddings_model=Depends(get_embeddings_model),
+    uploaded_file: UploadFile,
+    embeddings_model: SentenceTransformer = Depends(get_embeddings_model),
 ) -> UploadResponse:
     """
     Sube un documento al sistema y comienza su procesamiento en segundo plano.
 
     Args:
         background_tasks (BackgroundTasks): Tareas en segundo plano para procesar el archivo.
-        file (UploadFile): Archivo a subir.
+        uploaded_file (UploadFile): Archivo a subir.
         embeddings_model: Modelo de embeddings para procesar el archivo.
 
     Returns:
@@ -48,22 +46,28 @@ async def upload_document(
     """
     document_id = str(uuid4())
 
-    logger.info(f"Iniciando subida de archivo: {file.filename} - {document_id}")
+    logger.info(
+        f"Iniciando subida de archivo: {uploaded_file.filename} - {document_id}"
+    )
 
-    file_path = await process_pdf_upload(file, document_id)
+    saved_file_path = await process_pdf_upload(uploaded_file, document_id)
 
     background_tasks.add_task(
         process_pdf_ingestion,
-        str(file_path),
+        str(saved_file_path),
         document_id,
         embeddings_model,
     )
     # Para producción se usaría Celery o ARQ con worker separado. Aquí añadiría complejidad y costo.
 
-    logger.info(f"Subida de archivo {file.filename} - {document_id} finalizada")
+    logger.info(
+        f"Subida de archivo {uploaded_file.filename} - {document_id} finalizada"
+    )
 
     return UploadResponse(
-        doc_id=document_id, filename=file.filename, status=IngestionStatus.PROCESSING
+        doc_id=document_id,
+        filename=uploaded_file.filename,
+        status=IngestionStatus.PROCESSING,
     )
 
 
@@ -117,3 +121,66 @@ async def get_document_status(document_id: UUID) -> StreamingResponse:
             await asyncio.sleep(settings.SSE_POLL_INTERVAL_SECONDS)
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
+@router.get("/{document_id}/summary")
+async def stream_document_summary(
+    document_id: UUID,
+    embeddings_model: SentenceTransformer = Depends(get_embeddings_model),
+    groq_client: AsyncGroq = Depends(get_groq_client),
+) -> StreamingResponse:
+    """
+    Genera el resumen de un documento y lo transmite mediante SSE.
+
+    Args:
+        document_id (UUID): ID del documento a resumir.
+        embeddings_model: Dependencia del modelo de embeddings.
+        groq_client: Cliente Groq para consultas.
+
+    Returns:
+        StreamingResponse: Stream SSE que emite tokens parciales y un evento de finalización.
+    """
+
+    async def summary_sse_generator():
+        try:
+            async for event_type, event_data in generate_summary(
+                str(document_id),
+                embeddings_model,
+                groq_client,
+            ):
+                if event_type == StreamEvent.EVENT_TOKEN:
+                    yield f"data: {json.dumps({'token': event_data})}\n\n"
+                elif event_type == StreamEvent.EVENT_DONE:
+                    yield f"data: {json.dumps({'done': True})}\n\n"
+
+        except AuthException as auth_error:
+            logger.error(f"Error de autenticación en el stream: {str(auth_error)}")
+            yield f"event: error\ndata: {json.dumps({'type': 'auth_error', 'message': str(auth_error)})}\n\n"
+
+        except LLMException as llm_error:
+            logger.error(f"Error del servicio LLM en el stream: {str(llm_error)}")
+            yield f"event: error\ndata: {json.dumps({'type': 'llm_error', 'message': str(llm_error)})}\n\n"
+
+        except Exception as unexpected_error:
+            logger.critical(f"Error inesperado en el stream: {str(unexpected_error)}")
+            yield f"event: error\ndata: {json.dumps({'type': 'unexpected_error', 'message': str(unexpected_error)})}\n\n"
+
+    return StreamingResponse(summary_sse_generator(), media_type="text/event-stream")
+
+
+@router.delete("/{document_id}")
+async def delete_document(document_id: UUID) -> dict[str, str]:
+    """
+    Elimina un documento y sus datos asociados.
+
+    Args:
+        document_id (UUID): ID del documento a eliminar.
+
+    Returns:
+        dict[str, str]: Diccionario con el estado y mensaje de resultado.
+    """
+    await asyncio.to_thread(delete_document_service, str(document_id))
+    return {
+        "status": "success",
+        "message": f"Documento {str(document_id)} eliminado correctamente.",
+    }

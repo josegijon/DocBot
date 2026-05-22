@@ -11,9 +11,12 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
+from groq import AsyncGroq
+from sentence_transformers import CrossEncoder, SentenceTransformer
 
 from app.core.exceptions import AuthException, LLMException
 from app.models.chat import ChatRequest
+from app.models.stream import StreamEvent
 from app.rag.memory import delete_session, get_history
 from app.services.chat_service import stream_chat_response
 from app.api.deps import get_embeddings_model, get_groq_client, get_rerank_model
@@ -26,9 +29,9 @@ router = APIRouter(prefix="/api/chat", tags=["Chat"])
 @router.post("/")
 async def process_chat_message(
     chat_request: ChatRequest,
-    embeddings_model=Depends(get_embeddings_model),
-    rerank_model=Depends(get_rerank_model),
-    groq_client=Depends(get_groq_client),
+    embeddings_model: SentenceTransformer = Depends(get_embeddings_model),
+    rerank_model: CrossEncoder = Depends(get_rerank_model),
+    groq_client: AsyncGroq = Depends(get_groq_client),
 ) -> StreamingResponse:
     """Procesa una pregunta del usuario y devuelve la respuesta en formato SSE.
 
@@ -56,9 +59,9 @@ async def process_chat_message(
                 rerank_model,
                 groq_client,
             ):
-                if event_type == "token":
+                if event_type == StreamEvent.EVENT_TOKEN:
                     yield f"data: {json.dumps({'token': event_data})}\n\n"
-                elif event_type == "sources":
+                elif event_type == StreamEvent.EVENT_SOURCES:
                     yield f"data: {json.dumps({'sources': event_data})}\n\n"
 
         except AuthException as auth_error:

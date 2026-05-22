@@ -56,5 +56,5 @@ def delete_progress(doc_id: str) -> None:
     Args:
         doc_id: Identificador único del documento a eliminar.
     """
-    _progress_store.pop(doc_id)
+    _progress_store.pop(doc_id, None)
     logger.info(f"Progreso eliminado para doc_id '{doc_id}'")
