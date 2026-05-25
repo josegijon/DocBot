@@ -3,6 +3,12 @@
 /* JetBrains Mono */
 @font-face {
   font-family: "JetBrains Mono";
+  font-weight: 400;
+  src: url('./assets/fonts/JetBrainsMono-Regular.ttf');
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
   font-weight: 500;
   src: url('./assets/fonts/JetBrainsMono-Medium.ttf');
 }
@@ -24,6 +30,7 @@
   --color-outline-variant: #464554;
   --color-surface-container: #201f1f;
   --color-surface-container-high: #2a2a2a;
+  --color-surface-container-highest: #353534;
   --color-on-surface: #e5e2e1;
   --color-on-surface-variant: #c7c4d7;
 }
