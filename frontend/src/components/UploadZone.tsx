@@ -2,7 +2,7 @@ import { Upload } from "lucide-react"
 import { useRef, useState } from "react"
 
 interface UploadZoneProps {
-    onUploadSuccess: (docId: string) => void;
+    onUploadSuccess: (docId: string, filename: string) => void;
 }
 
 export const UploadZone = ({ onUploadSuccess }: UploadZoneProps) => {
@@ -21,7 +21,7 @@ export const UploadZone = ({ onUploadSuccess }: UploadZoneProps) => {
         })
 
         const data = await response.json()
-        onUploadSuccess(data.doc_id)
+        onUploadSuccess(data.doc_id, data.filename)
     }
 
     return (
