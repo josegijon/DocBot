@@ -1,12 +1,17 @@
+import { useState } from 'react';
+import { UploadZone } from './components/UploadZone';
 
+export const App = () => {
+  const [docId, setDocId] = useState<string | null>(null)
 
-function App() {
+  console.log(docId)
 
   return (
     <>
-      Hola Mundo
+      <UploadZone onUploadSuccess={setDocId} />
     </>
   )
 }
+
 
 export default App
