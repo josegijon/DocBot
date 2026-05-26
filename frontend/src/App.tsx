@@ -23,12 +23,30 @@ export const App = () => {
   }
 
   return (
-    <>
+    <div className='flex flex-col h-screen bg-surface'>
       <Header />
-      {!docId && <UploadZone onUploadSuccess={handleUploadSuccess} />}
-      {status !== "ready" && docId && <IngestionProgress progress={progress} status={status} filename={filename} />}
-      {status === "ready" && <DocumentSummary summary={summary} isDone={isDone} />}
-    </>
+
+      {/* Contenedor */}
+      <div className='flex flex-1 mt-12 overflow-hidden'>
+        {/* Panel izq */}
+        <aside className='hidden md:flex md:w-[30%] border-r border-outline-variant p-6 overflow-y-auto'>
+          {!docId && <UploadZone onUploadSuccess={handleUploadSuccess} />}
+          {status !== "ready" && docId && <IngestionProgress progress={progress} status={status} filename={filename} />}
+          {status === "ready" && <DocumentSummary summary={summary} isDone={isDone} />}
+        </aside>
+
+        {/* Panel der */}
+        <main className='flex-1 overflow-hidden'>
+
+        </main>
+      </div>
+
+      {/* Navbar móvil */}
+      <nav className='md:hidden fixed bottom-0 w-full h-16 bg-surface border-t border-outline-variant flex'>
+        <button className="flex-1 text-on-surface cursor-pointer">Documento</button>
+        <button className="flex-1 text-on-surface cursor-pointer">Chat</button>
+      </nav>
+    </div>
   )
 }
 
