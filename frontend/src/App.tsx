@@ -10,6 +10,7 @@ import { HeaderSummary } from './components/HeaderSummary';
 export const App = () => {
   const [docId, setDocId] = useState<string | null>(null)
   const [filename, setFilename] = useState<string | null>(null)
+  const [fileSize, setFileSize] = useState<number>(0)
 
   const { status, progress } = useIngestionStatus(docId)
   const { summary, isDone } = useSummary(docId, status)
@@ -18,9 +19,10 @@ export const App = () => {
   console.log(status, progress)
   console.log(summary)
 
-  const handleUploadSuccess = (docId: string, filename: string) => {
+  const handleUploadSuccess = (docId: string, filename: string, fileSize: number) => {
     setDocId(docId)
     setFilename(filename)
+    setFileSize(fileSize)
   }
 
   return (
@@ -31,7 +33,7 @@ export const App = () => {
       <div className='flex flex-1 mt-12 overflow-hidden'>
         {/* Panel izq */}
         <aside className='hidden md:flex md:w-[35%] border-r border-outline-variant flex-col bg-surface-container-lowest p-6 overflow-y-auto'>
-          {docId && <HeaderSummary filename={filename} />}
+          {docId && <HeaderSummary filename={filename} filesize={fileSize} />}
           {!docId && <UploadZone onUploadSuccess={handleUploadSuccess} />}
           {status !== "ready" && docId && <IngestionProgress progress={progress} status={status} filename={filename} />}
           {status === "ready" && <DocumentSummary summary={summary} isDone={isDone} />}
