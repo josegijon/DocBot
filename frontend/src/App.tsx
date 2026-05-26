@@ -5,6 +5,7 @@ import { IngestionProgress } from './components/IngestionProgress';
 import { DocumentSummary } from './components/DocumentSummary';
 import { useSummary } from './hooks/useSummary';
 import { Header } from './components/Header';
+import { HeaderSummary } from './components/HeaderSummary';
 
 export const App = () => {
   const [docId, setDocId] = useState<string | null>(null)
@@ -29,7 +30,8 @@ export const App = () => {
       {/* Contenedor */}
       <div className='flex flex-1 mt-12 overflow-hidden'>
         {/* Panel izq */}
-        <aside className='hidden md:flex md:w-[30%] border-r border-outline-variant p-6 overflow-y-auto'>
+        <aside className='hidden md:flex md:w-[35%] border-r border-outline-variant flex-col bg-surface-container-lowest p-6 overflow-y-auto'>
+          {docId && <HeaderSummary filename={filename} />}
           {!docId && <UploadZone onUploadSuccess={handleUploadSuccess} />}
           {status !== "ready" && docId && <IngestionProgress progress={progress} status={status} filename={filename} />}
           {status === "ready" && <DocumentSummary summary={summary} isDone={isDone} />}
