@@ -28,7 +28,7 @@ export const UploadZone = ({ onUploadSuccess }: UploadZoneProps) => {
     return (
         <>
             <div
-                className="group border-dashed border-2 border-outline-variant hover:border-primary transition-all duration-300 rounded-lg p-12 flex flex-col items-center justify-center gap-4 cursor-pointer bg-surface-container relative"
+                className="group mt-6 border-dashed border-2 border-outline-variant hover:border-primary transition-all duration-300 rounded-lg p-12 flex flex-col items-center justify-center gap-4 cursor-pointer bg-surface-container relative"
                 onClick={() => inputRef.current?.click()}
                 onDragOver={(e) => e.preventDefault()}
                 onDragEnter={(e) => e.preventDefault()}

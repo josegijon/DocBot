@@ -22,6 +22,12 @@
 
 @font-face {
   font-family: "Geist";
+  font-weight: 600;
+  src: url('./assets/fonts/Geist-SemiBold.ttf');
+}
+
+@font-face {
+  font-family: "Geist";
   font-weight: 700;
   src: url('./assets/fonts/Geist-Bold.ttf');
 }
