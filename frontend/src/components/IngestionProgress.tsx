@@ -15,7 +15,7 @@ export const IngestionProgress = ({ progress, status, filename }: IngestionProgr
 
     return (
         // Contenedor de estado de progreso
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 pt-6">
             <div className="flex justify-between items-end">
                 <div className="flex flex-col gap-1">
                     <span className="font-jetbrains text-label-md text-primary flex items-center gap-2">
