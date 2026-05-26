@@ -4,6 +4,7 @@ import { useIngestionStatus } from './hooks/useIngestionStatus';
 import { IngestionProgress } from './components/IngestionProgress';
 import { DocumentSummary } from './components/DocumentSummary';
 import { useSummary } from './hooks/useSummary';
+import { Header } from './components/Header';
 
 export const App = () => {
   const [docId, setDocId] = useState<string | null>(null)
@@ -23,6 +24,7 @@ export const App = () => {
 
   return (
     <>
+      <Header />
       {!docId && <UploadZone onUploadSuccess={handleUploadSuccess} />}
       {status !== "ready" && docId && <IngestionProgress progress={progress} status={status} filename={filename} />}
       {status === "ready" && <DocumentSummary summary={summary} isDone={isDone} />}
