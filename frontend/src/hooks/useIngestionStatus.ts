@@ -11,6 +11,10 @@ export const useIngestionStatus = (docId: string | null) => {
         progress: 0,
     })
 
+    const resetStatus = () => {
+        setIngestionStatus({ status: "processing", progress: 0 })
+    }
+
     useEffect(() => {
         if (!docId) return;
 
@@ -35,5 +39,5 @@ export const useIngestionStatus = (docId: string | null) => {
         }
     }, [docId])
 
-    return ingestionStatus
+    return { ...ingestionStatus, resetStatus }
 }

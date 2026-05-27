@@ -4,6 +4,11 @@ export const useSummary = (docId: string | null, status: string) => {
     const [summary, setSummary] = useState<string>("")
     const [isDone, setIsDone] = useState<boolean>(false)
 
+    const resetSummary = () => {
+        setSummary("")
+        setIsDone(false)
+    }
+
     useEffect(() => {
         if (!docId || status !== "ready") return
 
@@ -32,5 +37,5 @@ export const useSummary = (docId: string | null, status: string) => {
         }
     }, [docId, status])
 
-    return { summary, isDone }
+    return { summary, isDone, resetSummary }
 }

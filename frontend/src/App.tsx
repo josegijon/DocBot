@@ -7,14 +7,16 @@ import { useSummary } from './hooks/useSummary';
 import { Header } from './components/Header';
 import { HeaderSummary } from './components/HeaderSummary';
 import { ButtonNewDocument } from './components/ButtonNewDocument';
+import { ConfirmModal } from './components/ConfirmModal';
 
 export const App = () => {
   const [docId, setDocId] = useState<string | null>(null)
   const [filename, setFilename] = useState<string | null>(null)
   const [fileSize, setFileSize] = useState<number>(0)
+  const [showModal, setShowModal] = useState<boolean>(false)
 
-  const { status, progress } = useIngestionStatus(docId)
-  const { summary, isDone } = useSummary(docId, status)
+  const { status, progress, resetStatus } = useIngestionStatus(docId)
+  const { summary, isDone, resetSummary } = useSummary(docId, status)
 
   console.log(docId)
   console.log(status, progress)
@@ -26,9 +28,22 @@ export const App = () => {
     setFileSize(fileSize)
   }
 
+  const handleNewDocument = async () => {
+    await fetch(`/api/documents/${docId}`, { method: "DELETE" })
+
+    resetSummary()
+    resetStatus()
+    setShowModal(false)
+    setDocId(null)
+    setFilename(null)
+    setFileSize(0)
+  }
+
   return (
     <div className='flex flex-col h-screen bg-surface'>
       <Header />
+
+      {showModal && <ConfirmModal onConfirm={handleNewDocument} onCancel={() => setShowModal(false)} />}
 
       {/* Contenedor */}
       <div className='flex flex-1 mt-16.25 overflow-hidden'>
@@ -38,7 +53,7 @@ export const App = () => {
           {!docId && <UploadZone onUploadSuccess={handleUploadSuccess} />}
           {status !== "ready" && docId && <IngestionProgress progress={progress} status={status} filename={filename} />}
           {status === "ready" && <DocumentSummary summary={summary} isDone={isDone} />}
-          {status === "ready" && isDone && <ButtonNewDocument />}
+          {status === "ready" && isDone && <ButtonNewDocument onClick={() => setShowModal(true)} />}
         </aside>
 
         {/* Panel der */}
