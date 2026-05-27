@@ -17,7 +17,7 @@ export const IngestionProgress = ({ progress, status, filename }: IngestionProgr
         // Contenedor de estado de progreso
         <div className="flex flex-col gap-6 pt-6">
             <div className="flex justify-between items-end">
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-2">
                     <span className="font-jetbrains text-label-md text-primary flex items-center gap-2">
                         <span className="animate-pulse w-2 h-2 rounded-full bg-primary"></span>
                         {getStatusMessage()}

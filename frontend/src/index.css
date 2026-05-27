@@ -20,6 +20,18 @@
   src: url('./assets/fonts/Geist-Medium.ttf');
 }
 
+@font-face {
+  font-family: "Geist";
+  font-weight: 600;
+  src: url('./assets/fonts/Geist-SemiBold.ttf');
+}
+
+@font-face {
+  font-family: "Geist";
+  font-weight: 700;
+  src: url('./assets/fonts/Geist-Bold.ttf');
+}
+
 @theme {
   /* Font */
   --font-jetbrains: "JetBrains Mono";
@@ -28,6 +40,7 @@
   /* Colors */
   --color-primary: #c0c1ff;
   --color-outline-variant: #464554;
+  --color-surface: #131313;
   --color-surface-container: #201f1f;
   --color-surface-container-high: #2a2a2a;
   --color-surface-container-highest: #353534;

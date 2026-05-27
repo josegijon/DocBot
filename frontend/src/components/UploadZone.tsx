@@ -2,7 +2,7 @@ import { Upload } from "lucide-react"
 import { useRef, useState } from "react"
 
 interface UploadZoneProps {
-    onUploadSuccess: (docId: string, filename: string) => void;
+    onUploadSuccess: (docId: string, filename: string, filesize: number) => void;
 }
 
 export const UploadZone = ({ onUploadSuccess }: UploadZoneProps) => {
@@ -21,13 +21,14 @@ export const UploadZone = ({ onUploadSuccess }: UploadZoneProps) => {
         })
 
         const data = await response.json()
-        onUploadSuccess(data.doc_id, data.filename)
+        const fileSize = +(file.size / (1024 * 1024)).toFixed(2)
+        onUploadSuccess(data.doc_id, data.filename, fileSize)
     }
 
     return (
         <>
             <div
-                className="group border-dashed border-2 border-outline-variant hover:border-primary transition-all duration-300 rounded-lg p-12 flex flex-col items-center justify-center gap-4 cursor-pointer bg-surface-container relative"
+                className="group mt-6 border-dashed border-2 border-outline-variant hover:border-primary transition-all duration-300 rounded-lg p-12 flex flex-col items-center justify-center gap-4 cursor-pointer bg-surface-container relative"
                 onClick={() => inputRef.current?.click()}
                 onDragOver={(e) => e.preventDefault()}
                 onDragEnter={(e) => e.preventDefault()}
