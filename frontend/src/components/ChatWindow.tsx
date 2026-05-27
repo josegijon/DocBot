@@ -19,17 +19,20 @@ export const ChatWindow = ({ docId, sessionId }: ChatWindowProps) => {
 
     return (
         <div className="flex-1 flex flex-col h-full relative">
-            {/* Lista de mensajes */}
-            <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-10 chat-scrollbar">
-                {messages.length === 0 && (
-                    <p className="text-on-surface-variant text-center">
-                        Haz una pregunta sobre el documento
-                    </p>
-                )}
-                {messages.map((message, index) => (
-                    <MessageBubble key={index} message={message} />
-                ))}
-                <div ref={bottomRef} />
+            <div className="relative flex-1 overflow-hidden">
+                <div className="flex-1 h-full overflow-y-auto p-8 flex flex-col gap-10 chat-scrollbar">
+                    {messages.length === 0 && (
+                        <p className="text-on-surface-variant text-center">
+                            Haz una pregunta sobre el documento
+                        </p>
+                    )}
+                    {messages.map((message, index) => (
+                        <MessageBubble key={index} message={message} />
+                    ))}
+                    <div ref={bottomRef} />
+                </div>
+
+                <div className="absolute bottom-0 left-0 right-0 h-12 bg-linear-to-t from-surface to-transparent pointer-events-none" />
             </div>
 
             <InputBar onSend={sendMessage} isLoading={isLoading} />
