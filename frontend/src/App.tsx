@@ -6,6 +6,7 @@ import { DocumentSummary } from './components/DocumentSummary';
 import { useSummary } from './hooks/useSummary';
 import { Header } from './components/Header';
 import { HeaderSummary } from './components/HeaderSummary';
+import { ButtonNewDocument } from './components/ButtonNewDocument';
 
 export const App = () => {
   const [docId, setDocId] = useState<string | null>(null)
@@ -30,13 +31,14 @@ export const App = () => {
       <Header />
 
       {/* Contenedor */}
-      <div className='flex flex-1 mt-12 overflow-hidden'>
+      <div className='flex flex-1 mt-16.25 overflow-hidden'>
         {/* Panel izq */}
-        <aside className='hidden md:flex md:w-[35%] border-r border-outline-variant flex-col bg-surface-container-lowest p-6 overflow-y-auto'>
+        <aside className='hidden md:flex md:w-[35%] border-r border-outline-variant flex-col gap-6 bg-surface-container-lowest p-6 overflow-y-auto'>
           {docId && <HeaderSummary filename={filename} filesize={fileSize} />}
           {!docId && <UploadZone onUploadSuccess={handleUploadSuccess} />}
           {status !== "ready" && docId && <IngestionProgress progress={progress} status={status} filename={filename} />}
           {status === "ready" && <DocumentSummary summary={summary} isDone={isDone} />}
+          {status === "ready" && isDone && <ButtonNewDocument />}
         </aside>
 
         {/* Panel der */}
