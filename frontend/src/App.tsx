@@ -64,7 +64,7 @@ export const App = () => {
 
         {/* Panel der */}
         <main className='flex-1 overflow-hidden'>
-          <ChatWindow docId={docId} sessionId={sessionId} />
+          <ChatWindow docId={docId} sessionId={sessionId} filename={filename} />
         </main>
       </div>
 
