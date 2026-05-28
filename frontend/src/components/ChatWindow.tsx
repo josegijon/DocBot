@@ -25,11 +25,25 @@ export const ChatWindow = ({ docId, sessionId, filename }: ChatWindowProps) => {
         )
         if (bottomRef.current) observer.observe(bottomRef.current)
         return () => observer.disconnect()
-    }, [messages])
+    }, [])
 
-    const scrollToBottom = () => {
-        bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+    const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
+        bottomRef.current?.scrollIntoView({ behavior })
     }
+
+    useEffect(() => {
+        const lastMessage = messages[messages.length - 1]
+        if (!lastMessage) return
+
+        if (lastMessage.role === "user") {
+            // Si el usuario envía un mensaje, siempre baja suavemente
+            scrollToBottom("smooth")
+        } else if (!showScrollButton) {
+            // Si la IA está escribiendo y estamos abajo, seguimos el stream.
+            // Usamos "auto" (instantáneo) para evitar lagueos generados por cientos de scrolls suaves por segundo.
+            scrollToBottom("auto")
+        }
+    }, [messages, showScrollButton])
 
     return (
         <div className="flex-1 flex flex-col h-full relative">
@@ -46,8 +60,8 @@ export const ChatWindow = ({ docId, sessionId, filename }: ChatWindowProps) => {
 
                 <div className="absolute bottom-0 left-0 right-0 h-12 bg-linear-to-t from-surface to-transparent pointer-events-none" />
 
-                {/* {showScrollButton && <ScrollToBottom onClick={scrollToBottom} />} */}
-                <ScrollToBottom onClick={scrollToBottom} isVisible={showScrollButton} />
+                {/* <ScrollToBottom onClick={scrollToBottom} isVisible={showScrollButton} /> */}
+                <ScrollToBottom onClick={() => scrollToBottom("smooth")} isVisible={showScrollButton} />
             </div>
 
             <InputBar onSend={sendMessage} isLoading={isLoading} disabled={!docId} />
