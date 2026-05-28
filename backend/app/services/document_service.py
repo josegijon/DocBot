@@ -153,3 +153,26 @@ async def generate_summary(
     logger.info(f"Resumen del documento {document_id} finalizado.")
 
     yield (StreamEvent.EVENT_DONE, document_id)
+
+
+def document_exists(document_id: str) -> bool:
+    """Comprobar si existe la colección asociada a un documento en Chroma.
+
+    Esta función consulta el cliente Chroma para determinar si existe una
+    colección con nombre igual a ``document_id``.
+
+    Args:
+        document_id (str): Identificador único del documento.
+
+    Returns:
+        bool: ``True`` si la colección existe, ``False`` si no existe.
+
+    Raises:
+        Exception: Re-lanza cualquier excepción inesperada proveniente del cliente Chroma.
+    """
+    client = get_chroma_client(document_id)
+    try:
+        client.get_collection(name=document_id)
+        return True
+    except ValueError:
+        return False

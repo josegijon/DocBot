@@ -17,6 +17,7 @@ from app.models.stream import StreamEvent
 from app.rag.ingestor import process_pdf_ingestion
 from app.rag.progress import get_progress, IngestionStatus
 from app.services.document_service import (
+    document_exists,
     generate_summary,
     process_pdf_upload,
     delete_document as delete_document_service,
@@ -39,7 +40,7 @@ async def upload_document(
     Args:
         background_tasks (BackgroundTasks): Tareas en segundo plano para procesar el archivo.
         uploaded_file (UploadFile): Archivo a subir.
-        embeddings_model: Modelo de embeddings para procesar el archivo.
+        embeddings_model (SentenceTransformer): Modelo de embeddings para procesar el archivo.
 
     Returns:
         UploadResponse: Respuesta con el ID del documento, nombre del archivo y estado inicial.
@@ -134,11 +135,15 @@ async def stream_document_summary(
 
     Args:
         document_id (UUID): ID del documento a resumir.
-        embeddings_model: Dependencia del modelo de embeddings.
-        groq_client: Cliente Groq para consultas.
+        embeddings_model (SentenceTransformer): Modelo de embeddings.
+        groq_client (AsyncGroq): Cliente Groq para consultas.
 
     Returns:
         StreamingResponse: Stream SSE que emite tokens parciales y un evento de finalización.
+
+    Raises:
+        AuthException: Si falla la autenticación con el servicio LLM.
+        LLMException: Si ocurre un error en el servicio LLM.
     """
 
     async def summary_sse_generator():
@@ -184,3 +189,18 @@ async def delete_document(document_id: UUID) -> dict[str, str]:
         "status": "success",
         "message": f"Documento {str(document_id)} eliminado correctamente.",
     }
+
+
+@router.get("/{document_id}/exists")
+async def check_document_exists(document_id: UUID) -> dict[str, bool]:
+    """
+    Comprueba si un documento existe en el sistema.
+
+    Args:
+        document_id (UUID): ID del documento a consultar.
+
+    Returns:
+        dict[str, bool]: Clave `exists` indicando si el documento existe.
+    """
+    exists_flag = await asyncio.to_thread(document_exists, str(document_id))
+    return {"exists": exists_flag}
