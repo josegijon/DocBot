@@ -1,4 +1,4 @@
-import { Send } from "lucide-react"
+import { Loader2, Send } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 
 interface InputBarProps {
@@ -50,7 +50,7 @@ export const InputBar = ({ onSend, isLoading, disabled }: InputBarProps) => {
                                 onClick={handleSend}
                                 disabled={isLoading || disabled || !input.trim()}
                             >
-                                {isLoading ? "..." : <Send size={18} />}
+                                {isLoading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
                             </button>
                         </div>
                     </div>
