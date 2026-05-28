@@ -1,8 +1,9 @@
 import { useChat } from "../hooks/useChat"
 import { MessageBubble } from "./MessageBubble"
 import { InputBar } from "./InputBar"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { ChatOnboarding } from "./ChatOnboarding"
+import { ScrollToBottom } from './ScrollToBottom';
 
 interface ChatWindowProps {
     docId: string | null
@@ -11,13 +12,24 @@ interface ChatWindowProps {
 }
 
 export const ChatWindow = ({ docId, sessionId, filename }: ChatWindowProps) => {
+    const [showScrollButton, setShowScrollButton] = useState(false)
+
     const { messages, isLoading, sendMessage } = useChat(docId, sessionId)
 
     const bottomRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+        const observer = new IntersectionObserver(
+            ([entry]) => setShowScrollButton(!entry.isIntersecting),
+            { threshold: 0.1 }
+        )
+        if (bottomRef.current) observer.observe(bottomRef.current)
+        return () => observer.disconnect()
     }, [messages])
+
+    const scrollToBottom = () => {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+    }
 
     return (
         <div className="flex-1 flex flex-col h-full relative">
@@ -33,6 +45,8 @@ export const ChatWindow = ({ docId, sessionId, filename }: ChatWindowProps) => {
                 </div>
 
                 <div className="absolute bottom-0 left-0 right-0 h-12 bg-linear-to-t from-surface to-transparent pointer-events-none" />
+
+                {showScrollButton && <ScrollToBottom onClick={scrollToBottom} />}
             </div>
 
             <InputBar onSend={sendMessage} isLoading={isLoading} disabled={!docId} />

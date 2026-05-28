@@ -1,5 +1,5 @@
 import { Send } from "lucide-react"
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 
 interface InputBarProps {
     onSend: (message: string) => void
@@ -9,6 +9,7 @@ interface InputBarProps {
 
 export const InputBar = ({ onSend, isLoading, disabled }: InputBarProps) => {
     const [input, setInput] = useState<string>("")
+    const textareaRef = useRef<HTMLTextAreaElement>(null)
 
     const handleSend = () => {
         if (!input.trim() || isLoading) return
@@ -16,11 +17,18 @@ export const InputBar = ({ onSend, isLoading, disabled }: InputBarProps) => {
         setInput("")
     }
 
+    useEffect(() => {
+        if (!isLoading && !disabled) {
+            textareaRef.current?.focus()
+        }
+    }, [isLoading, disabled])
+
     return (
         <div className="p-6 bg-surface">
             <div className="max-w-4xl mx-auto relative">
                 <div className="border border-[#333] rounded-xl bg-surface-container-low shadow-lg focus-within:ring-1 focus-within:ring-primary/50 transition-all overflow-hidden flex items-center">
                     <textarea
+                        ref={textareaRef}
                         rows={1}
                         className="w-full bg-transparent border-none focus:outline-none focus:ring-0 font-body-md text-body-md text-on-surface p-4 resize-none min-h-14 chat-scrollbar"
                         placeholder={disabled ? "Sube un PDF para empezar..." : "Escribe tu pregunta..."}
