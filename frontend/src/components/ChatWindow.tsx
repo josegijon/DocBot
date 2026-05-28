@@ -35,7 +35,7 @@ export const ChatWindow = ({ docId, sessionId, filename }: ChatWindowProps) => {
                 <div className="absolute bottom-0 left-0 right-0 h-12 bg-linear-to-t from-surface to-transparent pointer-events-none" />
             </div>
 
-            <InputBar onSend={sendMessage} isLoading={isLoading} />
+            <InputBar onSend={sendMessage} isLoading={isLoading} disabled={!docId} />
         </div>
     )
 }

@@ -4,9 +4,10 @@ import { useState } from "react"
 interface InputBarProps {
     onSend: (message: string) => void
     isLoading: boolean
+    disabled: boolean
 }
 
-export const InputBar = ({ onSend, isLoading }: InputBarProps) => {
+export const InputBar = ({ onSend, isLoading, disabled }: InputBarProps) => {
     const [input, setInput] = useState<string>("")
 
     const handleSend = () => {
@@ -22,8 +23,8 @@ export const InputBar = ({ onSend, isLoading }: InputBarProps) => {
                     <textarea
                         rows={1}
                         className="w-full bg-transparent border-none focus:outline-none focus:ring-0 font-body-md text-body-md text-on-surface p-4 resize-none min-h-14 chat-scrollbar"
-                        placeholder="Escribe tu pregunta..."
-                        disabled={isLoading}
+                        placeholder={disabled ? "Sube un PDF para empezar..." : "Escribe tu pregunta..."}
+                        disabled={isLoading || disabled}
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={(e) => {
@@ -37,9 +38,9 @@ export const InputBar = ({ onSend, isLoading }: InputBarProps) => {
                     <div className="flex items-center justify-center px-4">
                         <div className="flex items-center justify-center gap-2">
                             <button
-                                className="p-2 text-on-surface-variant hover:text-primary hover:bg-surface-variant rounded-lg transition-all cursor-pointer flex items-center justify-center"
+                                className="p-2 text-on-primary bg-primary rounded-lg transition-all cursor-pointer flex items-center justify-center hover:opacity-90 active:scale-95 disabled:bg-surface-variant disabled:text-outline disabled:cursor-default"
                                 onClick={handleSend}
-                                disabled={isLoading || !input.trim()}
+                                disabled={isLoading || disabled || !input.trim()}
                             >
                                 {isLoading ? "..." : <Send size={18} />}
                             </button>
