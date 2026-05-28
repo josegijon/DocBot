@@ -1,5 +1,7 @@
+// src/components/MessageBubble.tsx
 import { BookOpenText } from "lucide-react"
 import { SourceCard } from "./SourceCard"
+import { formatMessageContent } from "../utils/format"
 
 interface Source {
     page: number
@@ -19,30 +21,6 @@ interface MessageBubbleProps {
 
 export const MessageBubble = ({ message }: MessageBubbleProps) => {
     const isUser = message.role === "user"
-
-    const formatMessageContent = (text: string) => {
-        const regex = /(\[(?:P[áa]g|P[áa]gina)\.?\s*\d+\])/gi;
-        const parts = text.split(regex);
-
-        return parts.map((part, index) => {
-            const isPageTag = part.match(/^\[(?:P[áa]g|P[áa]gina)\.?\s*(\d+)\]$/i);
-
-            if (isPageTag) {
-                const pageNumber = isPageTag[1];
-
-                return (
-                    <sup
-                        key={index}
-                        className="font-jetbrains text-primary cursor-help font-medium select-none text-xs"
-                        title={`Página ${pageNumber}`}
-                    >
-                        [{pageNumber}]
-                    </sup>
-                );
-            }
-            return part;
-        });
-    };
 
     return (
         <div className={`flex flex-col gap-2 max-w-[90%] animate-in fade-in slide-in-from-bottom-3 duration-500 ease-out ${isUser ? "justify-end ml-auto" : "justify-start"}`}>

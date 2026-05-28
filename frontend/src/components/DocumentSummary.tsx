@@ -1,3 +1,4 @@
+import { formatMessageContent } from "../utils/format"
 
 interface DocumentSummaryProps {
     summary: string
@@ -11,10 +12,10 @@ export const DocumentSummary = ({ summary, isDone }: DocumentSummaryProps) => {
                 Resumen del documento
             </h3>
 
-            <p className="font-geist text-body-md text-on-surface-variant">
-                {summary}
+            <p className="font-geist text-body-md text-on-surface-variant whitespace-pre-wrap">
+                {formatMessageContent(summary)}
                 {!isDone && (
-                    <span className="animate-pulse text-primary">|</span>
+                    <span className="animate-pulse text-primary font-bold ml-0.5">|</span>
                 )}
             </p>
         </div>
