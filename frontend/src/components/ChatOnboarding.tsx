@@ -1,4 +1,4 @@
-import { FileText, Sparkles, UploadCloud } from "lucide-react"
+import { FileText, FileUp, Plus, Sparkles } from "lucide-react"
 
 interface ChatOnboardingProps {
     filename: string | null
@@ -14,13 +14,11 @@ export const ChatOnboarding = ({ filename }: ChatOnboardingProps) => {
                 <div className="relative group">
                     <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full scale-75 group-hover:scale-100 transition-transform duration-700"></div>
                     <div className="relative w-24 h-24 bg-surface-container border border-outline-variant rounded-2xl flex items-center justify-center text-primary">
-                        {filename ? <FileText size={48} /> : <UploadCloud size={48} />}
+                        {filename ? <FileText size={48} /> : <FileUp size={48} />}
 
-                        {filename && (
-                            <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-surface-container-highest border border-outline-variant rounded-full flex items-center justify-center shadow-lg">
-                                <Sparkles size={18} />
-                            </div>
-                        )}
+                        <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-surface-container-highest border border-outline-variant rounded-full flex items-center justify-center shadow-lg">
+                            {filename ? <Sparkles size={18} /> : <Plus size={18} />}
+                        </div>
                     </div>
                 </div>
 
