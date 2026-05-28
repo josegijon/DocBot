@@ -46,7 +46,8 @@ export const ChatWindow = ({ docId, sessionId, filename }: ChatWindowProps) => {
 
                 <div className="absolute bottom-0 left-0 right-0 h-12 bg-linear-to-t from-surface to-transparent pointer-events-none" />
 
-                {showScrollButton && <ScrollToBottom onClick={scrollToBottom} />}
+                {/* {showScrollButton && <ScrollToBottom onClick={scrollToBottom} />} */}
+                <ScrollToBottom onClick={scrollToBottom} isVisible={showScrollButton} />
             </div>
 
             <InputBar onSend={sendMessage} isLoading={isLoading} disabled={!docId} />
