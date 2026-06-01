@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 interface Source {
     page: number
@@ -14,6 +14,27 @@ interface Message {
 export const useChat = (docId: string | null, sessionId: string) => {
     const [messages, setMessages] = useState<Message[]>([])
     const [isLoading, setIsLoading] = useState<boolean>(false)
+
+    useEffect(() => {
+        if (!docId) {
+            setMessages([])
+            return
+        };
+
+        const laodHistory = async () => {
+            const response = await fetch(`/api/chat/${sessionId}/history`)
+            const history = await response.json()
+
+            if (history.length === 0) {
+                setMessages([]);
+            } else {
+                setMessages(history)
+            }
+        }
+
+        laodHistory();
+
+    }, [docId])
 
     const sendMessage = async (userMessage: string) => {
         if (!docId || isLoading) return
@@ -83,5 +104,7 @@ export const useChat = (docId: string | null, sessionId: string) => {
         setIsLoading(false)
     }
 
-    return { messages, isLoading, sendMessage }
+    const resetMessages = () => setMessages([])
+
+    return { messages, isLoading, sendMessage, resetMessages }
 }
