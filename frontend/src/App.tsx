@@ -63,8 +63,6 @@ export const App = () => {
   }, [status])
 
   const handleSelectDocument = async (selectedDocId: string, selectedSessionId: string) => {
-    resetStatus()
-    resetSummary()
     resetMessages()
 
     const doc = documents.find(d => d.doc_id === selectedDocId)
@@ -80,6 +78,7 @@ export const App = () => {
     }
 
     setDocId(doc.doc_id)
+    resetSummary()
     setSessionId(doc.session_id)
     setFilename(doc.filename)
     setIsHistoryOpen(false)
