@@ -16,7 +16,24 @@ export const useChat = (docId: string | null, sessionId: string) => {
     const [isLoading, setIsLoading] = useState<boolean>(false)
 
     useEffect(() => {
-        setMessages([])
+        if (!docId) {
+            setMessages([])
+            return
+        };
+
+        const laodHistory = async () => {
+            const response = await fetch(`/api/chat/${sessionId}/history`)
+            const history = await response.json()
+
+            if (history.length === 0) {
+                setMessages([]);
+            } else {
+                setMessages(history)
+            }
+        }
+
+        laodHistory();
+
     }, [docId])
 
     const sendMessage = async (userMessage: string) => {
