@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { UploadZone } from './components/UploadZone';
 import { useIngestionStatus } from './hooks/useIngestionStatus';
@@ -11,17 +11,21 @@ import { ButtonNewDocument } from './components/ButtonNewDocument';
 import { ConfirmModal } from './components/ConfirmModal';
 import { useChat } from './hooks/useChat';
 import { ChatWindow } from './components/ChatWindow';
+import { useDocumentHistory } from './hooks/useDocumentHistory';
+import { RecentDocuments } from './components/RecentDocuments';
 
 export const App = () => {
   const [docId, setDocId] = useState<string | null>(null)
   const [filename, setFilename] = useState<string | null>(null)
   const [fileSize, setFileSize] = useState<number>(0)
   const [showModal, setShowModal] = useState<boolean>(false)
-  const [sessionId] = useState<string>(() => uuidv4())
+  const [sessionId, setSessionId] = useState<string>(() => uuidv4())
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false)
 
+  const { documents, addDocument, removeDocument } = useDocumentHistory()
   const { status, progress, resetStatus } = useIngestionStatus(docId)
   const { summary, isDone, resetSummary } = useSummary(docId, status)
-  const { messages, isLoading, sendMessage } = useChat(docId, sessionId)
+  const { messages, isLoading, sendMessage, resetMessages } = useChat(docId, sessionId)
 
   console.log(docId)
   console.log(status, progress)
@@ -32,10 +36,12 @@ export const App = () => {
     setDocId(docId)
     setFilename(filename)
     setFileSize(fileSize)
+    addDocument(docId, sessionId, filename)
   }
 
   const handleNewDocument = async () => {
     await fetch(`/api/documents/${docId}`, { method: "DELETE" })
+    if (docId) removeDocument(docId)
 
     resetSummary()
     resetStatus()
@@ -43,11 +49,51 @@ export const App = () => {
     setDocId(null)
     setFilename(null)
     setFileSize(0)
+    setSessionId(uuidv4())
+  }
+
+  useEffect(() => {
+    if (status === "ready" && docId && filename) {
+      const alreadyExists = documents.some(d => d.doc_id === docId)
+      if (!alreadyExists) addDocument(docId, sessionId, filename)
+    }
+  }, [status])
+
+  const handleSelectDocument = async (selectedDocId: string, selectedSessionId: string) => {
+    resetStatus()
+    resetSummary()
+    resetMessages()
+
+    const doc = documents.find(d => d.doc_id === selectedDocId)
+    if (!doc) return
+
+    const response = await fetch(`/api/documents/${selectedDocId}/exists`)
+    const data = await response.json()
+
+    if (!data.exists) {
+      removeDocument(selectedDocId)
+      alert("Este documento ya no está disponible en el servidor.")
+      return
+    }
+
+    setDocId(doc.doc_id)
+    setSessionId(doc.session_id)
+    setFilename(doc.filename)
+    setIsHistoryOpen(false)
   }
 
   return (
     <div className='flex flex-col h-screen bg-surface'>
-      <Header />
+      <Header onOpenHistory={() => setIsHistoryOpen(true)} />
+
+      <RecentDocuments
+        documents={documents}
+        active_doc_id={docId || ""}
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        onSelectDocument={handleSelectDocument}
+        onRemoveDocument={removeDocument}
+      />
 
       {showModal && <ConfirmModal onConfirm={handleNewDocument} onCancel={() => setShowModal(false)} />}
 
