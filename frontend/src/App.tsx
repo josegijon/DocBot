@@ -38,7 +38,7 @@ export const App = () => {
     addDocument(docId, sessionId, filename)
   }
 
-  const handleNewDocument = async () => {
+  const handleNewDocument = () => {
     resetStatus()
     setDocId(null)
     setFilename(null)
@@ -46,6 +46,12 @@ export const App = () => {
     setSessionId(uuidv4())
     resetSummary()
     resetMessages()
+  }
+
+  const handleRemoveDocument = async (doc_id: string) => {
+    if (doc_id === docId) handleNewDocument();
+    await fetch(`/api/documents/${doc_id}`, { method: "DELETE" })
+    removeDocument(doc_id)
   }
 
   useEffect(() => {
@@ -88,7 +94,7 @@ export const App = () => {
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
         onSelectDocument={handleSelectDocument}
-        onRemoveDocument={removeDocument}
+        onRemoveDocument={handleRemoveDocument}
       />
 
       {/* {showModal && <ConfirmModal onConfirm={handleNewDocument} onCancel={() => setShowModal(false)} />} */}
