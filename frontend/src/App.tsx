@@ -12,12 +12,13 @@ import { useChat } from './hooks/useChat';
 import { ChatWindow } from './components/ChatWindow';
 import { useDocumentHistory } from './hooks/useDocumentHistory';
 import { RecentDocuments } from './components/RecentDocuments';
+import { ConfirmModal } from './components/ConfirmModal';
 
 export const App = () => {
   const [docId, setDocId] = useState<string | null>(null)
   const [filename, setFilename] = useState<string | null>(null)
   const [fileSize, setFileSize] = useState<number>(0)
-  // const [showModal, setShowModal] = useState<boolean>(false)
+  const [docToDelete, setDocToDelete] = useState<string | null>(null)
   const [sessionId, setSessionId] = useState<string>(() => uuidv4())
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
 
@@ -26,9 +27,9 @@ export const App = () => {
   const { summary, isDone, resetSummary } = useSummary(docId, status)
   const { messages, isLoading, sendMessage, resetMessages } = useChat(docId, sessionId)
 
-  console.log(docId)
-  console.log(status, progress)
-  console.log(messages)
+  // console.log(docId)
+  // console.log(status, progress)
+  // console.log(messages)
   // console.log(summary)
 
   const handleUploadSuccess = (docId: string, filename: string, fileSize: number) => {
@@ -84,6 +85,9 @@ export const App = () => {
     setIsHistoryOpen(false)
   }
 
+  console.log(docToDelete);
+
+
   return (
     <div className='flex flex-col h-screen bg-surface'>
       <Header onOpenHistory={() => setIsHistoryOpen(true)} />
@@ -94,10 +98,10 @@ export const App = () => {
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
         onSelectDocument={handleSelectDocument}
-        onRemoveDocument={handleRemoveDocument}
+        onRemoveDocument={(doc_id) => setDocToDelete(doc_id)}
       />
 
-      {/* {showModal && <ConfirmModal onConfirm={handleNewDocument} onCancel={() => setShowModal(false)} />} */}
+      {docToDelete && <ConfirmModal onConfirm={() => { handleRemoveDocument(docToDelete!); setDocToDelete(null) }} onCancel={() => setDocToDelete(null)} />}
 
       {/* Contenedor */}
       <div className='flex flex-1 mt-16.25 overflow-hidden'>
