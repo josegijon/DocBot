@@ -8,7 +8,6 @@ import { useSummary } from './hooks/useSummary';
 import { Header } from './components/Header';
 import { HeaderSummary } from './components/HeaderSummary';
 import { ButtonNewDocument } from './components/ButtonNewDocument';
-import { ConfirmModal } from './components/ConfirmModal';
 import { useChat } from './hooks/useChat';
 import { ChatWindow } from './components/ChatWindow';
 import { useDocumentHistory } from './hooks/useDocumentHistory';
@@ -18,7 +17,7 @@ export const App = () => {
   const [docId, setDocId] = useState<string | null>(null)
   const [filename, setFilename] = useState<string | null>(null)
   const [fileSize, setFileSize] = useState<number>(0)
-  const [showModal, setShowModal] = useState<boolean>(false)
+  // const [showModal, setShowModal] = useState<boolean>(false)
   const [sessionId, setSessionId] = useState<string>(() => uuidv4())
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
 
@@ -40,16 +39,13 @@ export const App = () => {
   }
 
   const handleNewDocument = async () => {
-    await fetch(`/api/documents/${docId}`, { method: "DELETE" })
-    if (docId) removeDocument(docId)
-
-    resetSummary()
     resetStatus()
-    setShowModal(false)
     setDocId(null)
     setFilename(null)
     setFileSize(0)
     setSessionId(uuidv4())
+    resetSummary()
+    resetMessages()
   }
 
   useEffect(() => {
@@ -95,7 +91,7 @@ export const App = () => {
         onRemoveDocument={removeDocument}
       />
 
-      {showModal && <ConfirmModal onConfirm={handleNewDocument} onCancel={() => setShowModal(false)} />}
+      {/* {showModal && <ConfirmModal onConfirm={handleNewDocument} onCancel={() => setShowModal(false)} />} */}
 
       {/* Contenedor */}
       <div className='flex flex-1 mt-16.25 overflow-hidden'>
@@ -105,7 +101,7 @@ export const App = () => {
           {!docId && <UploadZone onUploadSuccess={handleUploadSuccess} />}
           {status !== "ready" && docId && <IngestionProgress progress={progress} status={status} filename={filename} />}
           {status === "ready" && <DocumentSummary summary={summary} isDone={isDone} />}
-          {status === "ready" && isDone && <ButtonNewDocument onClick={() => setShowModal(true)} />}
+          {status === "ready" && isDone && <ButtonNewDocument onClick={handleNewDocument} />}
         </aside>
 
         {/* Panel der */}
