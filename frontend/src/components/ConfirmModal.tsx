@@ -14,12 +14,12 @@ export const ConfirmModal = ({ onConfirm, onCancel }: ConfirmModalProps) => {
                         <div className="w-10 h-10 rounded-lg bg-error-container flex items-center justify-center text-error">
                             <TriangleAlert />
                         </div>
-                        <h3 className="font-geist text-headline-md text-on-surface">Replace current document?</h3>
+                        <h3 className="font-geist text-headline-md text-on-surface">¿Eliminar este documento?</h3>
                     </div>
                 </div>
                 <div className="p-6">
                     <p className="font-geist text-body-md text-on-surface-variant leading-relaxed">
-                        Uploading a new PDF will end the current session and clear the existing analysis. Do you want to continue?
+                        Esta acción eliminará el documento y todo su historial de conversación. No se puede deshacer. ¿Quieres continuar?
                     </p>
                 </div>
                 <div className="p-6 bg-surface-container flex items-center justify-end gap-3">
@@ -28,14 +28,14 @@ export const ConfirmModal = ({ onConfirm, onCancel }: ConfirmModalProps) => {
                         className="px-5 py-2.5 rounded-lg font-jetbrains text-label-md text-on-surface-variant hover:bg-surface-variant transition-colors border border-outline-variant cursor-pointer"
                         id="cancel-upload"
                     >
-                        Cancel
+                        Cancelar
                     </button>
                     <button
                         onClick={onConfirm}
                         className="px-5 py-2.5 rounded-lg font-jetbrains text-label-md bg-primary text-on-primary hover:opacity-90 active:scale-95 transition-all cursor-pointer"
                         id="confirm-upload"
                     >
-                        Confirm
+                        Confirmar
                     </button>
                 </div>
             </div>
