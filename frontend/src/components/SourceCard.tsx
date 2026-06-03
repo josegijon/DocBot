@@ -11,8 +11,6 @@ interface SourceCardProps {
 }
 
 export const SourceCard = ({ source, index }: SourceCardProps) => {
-    console.log("Score: " + source.score);
-
     return (
         <div className="flex flex-col gap-2">
             <div className="p-2 bg-surface-container-low border border-outline-variant rounded-lg flex items-start gap-3 hover:border-primary transition-all">

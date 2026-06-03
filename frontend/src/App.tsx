@@ -21,9 +21,10 @@ export const App = () => {
   const [docToDelete, setDocToDelete] = useState<string | null>(null)
   const [sessionId, setSessionId] = useState<string>(() => uuidv4())
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
+  const [isDocumentReady, setIsDocumentReady] = useState<boolean>(false)
 
   const { documents, addDocument, removeDocument } = useDocumentHistory()
-  const { status, progress, resetStatus } = useIngestionStatus(docId)
+  const { status, progress, resetStatus } = useIngestionStatus(docId, isDocumentReady)
   const { summary, isDone, resetSummary } = useSummary(docId, status)
   const { messages, isLoading, sendMessage, resetMessages } = useChat(docId, sessionId)
 
@@ -40,6 +41,7 @@ export const App = () => {
   }
 
   const handleNewDocument = () => {
+    setIsDocumentReady(false)
     resetStatus()
     setDocId(null)
     setFilename(null)
@@ -77,6 +79,7 @@ export const App = () => {
       return
     }
 
+    setIsDocumentReady(true)
     setDocId(doc.doc_id)
     resetSummary()
     setSessionId(doc.session_id)
