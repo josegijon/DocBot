@@ -5,7 +5,7 @@ interface IngestionStatus {
     progress: number
 }
 
-export const useIngestionStatus = (docId: string | null) => {
+export const useIngestionStatus = (docId: string | null, isKnownReady: boolean = false) => {
     const [ingestionStatus, setIngestionStatus] = useState<IngestionStatus>({
         status: "processing",
         progress: 0,
@@ -17,6 +17,11 @@ export const useIngestionStatus = (docId: string | null) => {
 
     useEffect(() => {
         if (!docId) return;
+
+        if (isKnownReady) {
+            setIngestionStatus({ status: "ready", progress: 100 });
+            return;
+        }
 
         const source = new EventSource(`/api/documents/${docId}/status`);
 
@@ -37,7 +42,7 @@ export const useIngestionStatus = (docId: string | null) => {
         return () => {
             source.close()
         }
-    }, [docId])
+    }, [docId, isKnownReady])
 
     return { ...ingestionStatus, resetStatus }
 }
