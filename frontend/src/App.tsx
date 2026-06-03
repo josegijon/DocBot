@@ -52,6 +52,9 @@ export const App = () => {
   }
 
   const handleRemoveDocument = async (doc_id: string) => {
+    const doc = documents.find(d => d.doc_id === doc_id)
+    if (doc) localStorage.removeItem(`docbot_chat_${doc.session_id}`)
+
     if (doc_id === docId) handleNewDocument();
     await fetch(`/api/documents/${doc_id}`, { method: "DELETE" })
     removeDocument(doc_id)
@@ -65,7 +68,10 @@ export const App = () => {
   }, [status])
 
   const handleSelectDocument = async (selectedDocId: string, selectedSessionId: string) => {
-    resetMessages()
+    if (selectedDocId === docId) {
+      setIsHistoryOpen(false)
+      return
+    }
 
     const doc = documents.find(d => d.doc_id === selectedDocId)
     if (!doc) return

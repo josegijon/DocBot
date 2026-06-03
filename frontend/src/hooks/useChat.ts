@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 interface Source {
     page: number
@@ -15,34 +15,38 @@ export const useChat = (docId: string | null, sessionId: string) => {
     const [messages, setMessages] = useState<Message[]>([])
     const [isLoading, setIsLoading] = useState<boolean>(false)
 
+    const currentSessionRef = useRef(sessionId)
+    const isInitialLoadRef = useRef(false)
+
     useEffect(() => {
+        currentSessionRef.current = sessionId
+
         if (!docId) {
             setMessages([])
             return
-        };
-
-        const laodHistory = async () => {
-            const response = await fetch(`/api/chat/${sessionId}/history`)
-            const history = await response.json()
-
-            if (history.length === 0) {
-                setMessages([]);
-            } else {
-                setMessages(history)
-            }
         }
 
-        laodHistory();
+        const stored = localStorage.getItem(`docbot_chat_${sessionId}`)
+        isInitialLoadRef.current = true
+        setMessages(stored ? JSON.parse(stored) : [])
 
-    }, [docId])
+    }, [docId, sessionId])
+
+    useEffect(() => {
+        if (isInitialLoadRef.current) {
+            isInitialLoadRef.current = false
+            return
+        }
+
+        if (!sessionId || !docId || messages.length === 0 || sessionId !== currentSessionRef.current) return
+        localStorage.setItem(`docbot_chat_${sessionId}`, JSON.stringify(messages))
+    }, [messages, sessionId])
 
     const sendMessage = async (userMessage: string) => {
         if (!docId || isLoading) return
 
         setMessages(prev => [...prev, { role: "user", content: userMessage }])
-
         setMessages(prev => [...prev, { role: "assistant", content: "" }])
-
         setIsLoading(true)
 
         const response = await fetch("/api/chat/", {
@@ -104,7 +108,10 @@ export const useChat = (docId: string | null, sessionId: string) => {
         setIsLoading(false)
     }
 
-    const resetMessages = () => setMessages([])
+    const resetMessages = () => {
+        localStorage.removeItem(`docbot_chat_${sessionId}`)
+        setMessages([])
+    }
 
     return { messages, isLoading, sendMessage, resetMessages }
 }
