@@ -52,6 +52,7 @@ export const App = () => {
   const handleRemoveDocument = async (doc_id: string) => {
     try {
       const doc = documents.find(d => d.doc_id === doc_id)
+      localStorage.removeItem(`docbot_summary_${doc_id}`)
       if (doc) localStorage.removeItem(`docbot_chat_${doc.session_id}`)
       if (doc_id === docId) handleNewDocument();
 
