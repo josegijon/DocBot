@@ -51,7 +51,6 @@ export const App = () => {
     setFileSize(0)
     setSessionId(uuidv4())
     resetSummary()
-    resetMessages()
   }
 
   const handleRemoveDocument = async (doc_id: string) => {
