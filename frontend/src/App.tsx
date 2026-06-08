@@ -27,13 +27,8 @@ export const App = () => {
 
   const { documents, addDocument, removeDocument } = useDocumentHistory()
   const { status, progress, resetStatus } = useIngestionStatus(docId, isDocumentReady)
-  const { summary, isDone, resetSummary } = useSummary(docId, status)
+  const { summary, isDone, resetSummary, error } = useSummary(docId, status)
   const { messages, isLoading, sendMessage, resetMessages } = useChat(docId, sessionId)
-
-  // console.log(docId)
-  // console.log(status, progress)
-  // console.log(messages)
-  // console.log(summary)
 
   const handleUploadSuccess = (docId: string, filename: string, fileSize: number) => {
     setDocId(docId)
@@ -95,9 +90,6 @@ export const App = () => {
     setIsHistoryOpen(false)
   }
 
-  console.log(docToDelete);
-
-
   return (
     <div className='flex flex-col h-screen bg-surface'>
       <Header onOpenHistory={() => setIsHistoryOpen(true)} />
@@ -120,7 +112,7 @@ export const App = () => {
           {docId && <HeaderSummary filename={filename} filesize={fileSize} />}
           {!docId && <UploadZone onUploadSuccess={handleUploadSuccess} />}
           {status !== "ready" && docId && <IngestionProgress progress={progress} status={status} filename={filename} />}
-          {status === "ready" && <DocumentSummary summary={summary} isDone={isDone} />}
+          {status === "ready" && <DocumentSummary summary={summary} isDone={isDone} error={error} />}
           {status === "ready" && isDone && <ButtonNewDocument onClick={handleNewDocument} />}
         </aside>
 
