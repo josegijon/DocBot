@@ -15,12 +15,14 @@ from app.core.exceptions import AuthException, DocumentNotFoundException, LLMExc
 from app.models.document import UploadResponse
 from app.models.stream import StreamEvent
 from app.rag.ingestor import process_pdf_ingestion
-from app.rag.progress import get_progress, IngestionStatus
+from app.rag.progress import IngestionStatus, get_progress
+from app.services.document_service import (
+    delete_document as delete_document_service,
+)
 from app.services.document_service import (
     document_exists,
     generate_summary,
     process_pdf_upload,
-    delete_document as delete_document_service,
 )
 
 logger = logging.getLogger(__name__)
@@ -160,15 +162,15 @@ async def stream_document_summary(
 
         except AuthException as auth_error:
             logger.error(f"Error de autenticación en el stream: {str(auth_error)}")
-            yield f"event: error\ndata: {json.dumps({'type': 'auth_error', 'message': str(auth_error)})}\n\n"
+            yield f"event: stream_error\ndata: {json.dumps({'type': 'auth_error', 'message': str(auth_error)})}\n\n"
 
         except LLMException as llm_error:
             logger.error(f"Error del servicio LLM en el stream: {str(llm_error)}")
-            yield f"event: error\ndata: {json.dumps({'type': 'llm_error', 'message': str(llm_error)})}\n\n"
+            yield f"event: stream_error\ndata: {json.dumps({'type': 'llm_error', 'message': str(llm_error)})}\n\n"
 
         except Exception as unexpected_error:
             logger.critical(f"Error inesperado en el stream: {str(unexpected_error)}")
-            yield f"event: error\ndata: {json.dumps({'type': 'unexpected_error', 'message': str(unexpected_error)})}\n\n"
+            yield f"event: stream_error\ndata: {json.dumps({'type': 'unexpected_error', 'message': str(unexpected_error)})}\n\n"
 
     return StreamingResponse(summary_sse_generator(), media_type="text/event-stream")
 

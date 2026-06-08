@@ -14,12 +14,12 @@ from fastapi.responses import StreamingResponse
 from groq import AsyncGroq
 from sentence_transformers import CrossEncoder, SentenceTransformer
 
+from app.api.deps import get_embeddings_model, get_groq_client, get_rerank_model
 from app.core.exceptions import AuthException, LLMException
 from app.models.chat import ChatRequest
 from app.models.stream import StreamEvent
 from app.rag.memory import delete_session, get_history
 from app.services.chat_service import stream_chat_response
-from app.api.deps import get_embeddings_model, get_groq_client, get_rerank_model
 
 logger = logging.getLogger(__name__)
 
@@ -66,15 +66,15 @@ async def process_chat_message(
 
         except AuthException as auth_error:
             logger.error(f"Error de autenticación en el stream: {str(auth_error)}")
-            yield f"event: error\ndata: {json.dumps({'type': 'auth_error', 'message': str(auth_error)})}\n\n"
+            yield f"event: stream_error\ndata: {json.dumps({'type': 'auth_error', 'message': str(auth_error)})}\n\n"
 
         except LLMException as llm_error:
             logger.error(f"Error del servicio LLM en el stream: {str(llm_error)}")
-            yield f"event: error\ndata: {json.dumps({'type': 'llm_error', 'message': str(llm_error)})}\n\n"
+            yield f"event: stream_error\ndata: {json.dumps({'type': 'llm_error', 'message': str(llm_error)})}\n\n"
 
         except Exception as unexpected_error:
             logger.critical(f"Error inesperado en el stream: {str(unexpected_error)}")
-            yield f"event: error\ndata: {json.dumps({'type': 'unexpected_error', 'message': str(unexpected_error)})}\n\n"
+            yield f"event: stream_error\ndata: {json.dumps({'type': 'unexpected_error', 'message': str(unexpected_error)})}\n\n"
 
     return StreamingResponse(generate_sse_events(), media_type="text/event-stream")
 

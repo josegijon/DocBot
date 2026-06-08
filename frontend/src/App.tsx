@@ -14,6 +14,7 @@ import { useDocumentHistory } from './hooks/useDocumentHistory';
 import { RecentDocuments } from './components/RecentDocuments';
 import { ConfirmModal } from './components/ConfirmModal';
 import { FileText, MessagesSquare } from 'lucide-react';
+import { toast } from 'sonner';
 
 export const App = () => {
   const [docId, setDocId] = useState<string | null>(null)
@@ -27,13 +28,8 @@ export const App = () => {
 
   const { documents, addDocument, removeDocument } = useDocumentHistory()
   const { status, progress, resetStatus } = useIngestionStatus(docId, isDocumentReady)
-  const { summary, isDone, resetSummary } = useSummary(docId, status)
+  const { summary, isDone, resetSummary, error } = useSummary(docId, status)
   const { messages, isLoading, sendMessage, resetMessages } = useChat(docId, sessionId)
-
-  // console.log(docId)
-  // console.log(status, progress)
-  // console.log(messages)
-  // console.log(summary)
 
   const handleUploadSuccess = (docId: string, filename: string, fileSize: number) => {
     setDocId(docId)
@@ -54,12 +50,22 @@ export const App = () => {
   }
 
   const handleRemoveDocument = async (doc_id: string) => {
-    const doc = documents.find(d => d.doc_id === doc_id)
-    if (doc) localStorage.removeItem(`docbot_chat_${doc.session_id}`)
+    try {
+      const doc = documents.find(d => d.doc_id === doc_id)
+      if (doc) localStorage.removeItem(`docbot_chat_${doc.session_id}`)
+      if (doc_id === docId) handleNewDocument();
 
-    if (doc_id === docId) handleNewDocument();
-    await fetch(`/api/documents/${doc_id}`, { method: "DELETE" })
-    removeDocument(doc_id)
+      const response = await fetch(`/api/documents/${doc_id}`, { method: "DELETE" })
+
+      if (!response.ok) {
+        toast.error("No se pudo eliminar el documento")
+        return
+      }
+
+      removeDocument(doc_id)
+    } catch {
+      toast.error("No se pudo conectar con el servidor")
+    }
   }
 
   useEffect(() => {
@@ -70,33 +76,40 @@ export const App = () => {
   }, [status])
 
   const handleSelectDocument = async (selectedDocId: string, selectedSessionId: string) => {
-    if (selectedDocId === docId) {
+    try {
+      if (selectedDocId === docId) {
+        setIsHistoryOpen(false)
+        return
+      }
+
+      const doc = documents.find(d => d.doc_id === selectedDocId)
+      if (!doc) return
+
+      const response = await fetch(`/api/documents/${selectedDocId}/exists`)
+
+      if (!response.ok) {
+        toast.error("No se pudo conectar con el servidor")
+        return
+      }
+
+      const data = await response.json()
+
+      if (!data.exists) {
+        removeDocument(selectedDocId)
+        toast.error("Este documento ya no está disponible en el servidor.")
+        return
+      }
+
+      setIsDocumentReady(true)
+      setDocId(doc.doc_id)
+      resetSummary()
+      setSessionId(doc.session_id)
+      setFilename(doc.filename)
       setIsHistoryOpen(false)
-      return
+    } catch {
+      toast.error("No se pudo conectar con el servidor")
     }
-
-    const doc = documents.find(d => d.doc_id === selectedDocId)
-    if (!doc) return
-
-    const response = await fetch(`/api/documents/${selectedDocId}/exists`)
-    const data = await response.json()
-
-    if (!data.exists) {
-      removeDocument(selectedDocId)
-      alert("Este documento ya no está disponible en el servidor.")
-      return
-    }
-
-    setIsDocumentReady(true)
-    setDocId(doc.doc_id)
-    resetSummary()
-    setSessionId(doc.session_id)
-    setFilename(doc.filename)
-    setIsHistoryOpen(false)
   }
-
-  console.log(docToDelete);
-
 
   return (
     <div className='flex flex-col h-screen bg-surface'>
@@ -120,7 +133,7 @@ export const App = () => {
           {docId && <HeaderSummary filename={filename} filesize={fileSize} />}
           {!docId && <UploadZone onUploadSuccess={handleUploadSuccess} />}
           {status !== "ready" && docId && <IngestionProgress progress={progress} status={status} filename={filename} />}
-          {status === "ready" && <DocumentSummary summary={summary} isDone={isDone} />}
+          {status === "ready" && <DocumentSummary summary={summary} isDone={isDone} error={error} />}
           {status === "ready" && isDone && <ButtonNewDocument onClick={handleNewDocument} />}
         </aside>
 

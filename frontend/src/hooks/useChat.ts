@@ -62,47 +62,66 @@ export const useChat = (docId: string | null, sessionId: string) => {
         const reader = response.body!.getReader()
         const decoder = new TextDecoder()
 
-        while (true) {
-            const { done, value } = await reader.read()
-            if (done) break
+        let isErrorEvent = false;
+        let buffer = "";
 
-            const chunk = decoder.decode(value)
-            const lines = chunk.split("\n")
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+
+            buffer = lines.pop() || "";
 
             for (const line of lines) {
-                if (!line.startsWith("data:")) continue
+                const trimmedLine = line.trim();
+                if (!trimmedLine) continue;
 
-                const jsonStr = line.replace("data:", "").trim()
-                if (!jsonStr) continue
+                if (trimmedLine.startsWith("event: stream_error")) {
+                    isErrorEvent = true;
+                    continue;
+                }
+
+                if (!trimmedLine.startsWith("data:")) continue;
+
+                const jsonStr = trimmedLine.replace("data:", "").trim();
+                if (!jsonStr) continue;
 
                 try {
-                    const data = JSON.parse(jsonStr)
+                    const data = JSON.parse(jsonStr);
 
-                    if (data.token) {
-                        setMessages(prev => {
-                            const updated = [...prev]
-                            updated[updated.length - 1] = {
-                                ...updated[updated.length - 1],
-                                content: updated[updated.length - 1].content + data.token,
-                            }
-                            return updated
-                        })
-                    }
+                    setMessages(prev => {
+                        if (prev.length === 0) return prev;
 
-                    if (data.sources) {
-                        setMessages(prev => {
-                            const updated = [...prev]
-                            updated[updated.length - 1] = {
-                                ...updated[updated.length - 1],
-                                sources: data.sources,
-                            }
-                            return updated
-                        })
-                    }
-                } catch {
-                    // chunk parcial, ignorar
+                        const updated = [...prev];
+                        const lastIdx = updated.length - 1;
+                        const lastMessage = updated[lastIdx];
+
+                        if (isErrorEvent) {
+                            updated[lastIdx] = {
+                                ...lastMessage,
+                                content: lastMessage.content + (data.message || "")
+                            };
+                        } else {
+                            updated[lastIdx] = {
+                                ...lastMessage,
+                                ...(data.token && { content: lastMessage.content + data.token }),
+                                ...(data.sources && { sources: data.sources })
+                            };
+                        }
+
+                        return updated;
+                    });
+
+                    if (isErrorEvent) break;
+
+                } catch (e) {
+                    console.error("Error parseando el JSON de SSE:", e);
                 }
             }
+
+            if (isErrorEvent) break;
         }
 
         setIsLoading(false)
