@@ -78,7 +78,7 @@ export const useChat = (docId: string | null, sessionId: string) => {
                 const trimmedLine = line.trim();
                 if (!trimmedLine) continue;
 
-                if (trimmedLine.startsWith("event: error")) {
+                if (trimmedLine.startsWith("event: stream_error")) {
                     isErrorEvent = true;
                     continue;
                 }
