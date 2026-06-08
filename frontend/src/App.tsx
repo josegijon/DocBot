@@ -135,7 +135,7 @@ export const App = () => {
           {!docId && <UploadZone onUploadSuccess={handleUploadSuccess} />}
           {status !== "ready" && docId && <IngestionProgress progress={progress} status={status} filename={filename} />}
           {status === "ready" && <DocumentSummary summary={summary} isDone={isDone} error={error} />}
-          {status === "ready" && isDone && <ButtonNewDocument onClick={handleNewDocument} />}
+          {status === "ready" && (isDone || error !== null) && <ButtonNewDocument onClick={handleNewDocument} />}
         </aside>
 
         {/* Panel der */}
