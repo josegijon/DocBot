@@ -14,24 +14,31 @@ export const useSummary = (docId: string | null, status: string) => {
     useEffect(() => {
         if (!docId || status !== "ready") return
 
+        const cached = localStorage.getItem(`docbot_summary_${docId}`)
+        if (cached) {
+            setSummary(cached)
+            setIsDone(true)
+            return
+        }
+
         const source = new EventSource(`/api/documents/${docId}/summary`)
+
+        let accumulatedSummary = ""
 
         source.onmessage = (event) => {
             const data = JSON.parse(event.data)
 
             if (data.done) {
+                localStorage.setItem(`docbot_summary_${docId}`, accumulatedSummary)
                 setIsDone(true)
                 source.close()
                 return
             }
 
             if (data.token) {
+                accumulatedSummary += data.token
                 setSummary((prev) => prev + data.token)
             }
-        }
-
-        source.onerror = () => {
-            source.close()
         }
 
         source.addEventListener("stream_error", (event) => {
@@ -39,6 +46,10 @@ export const useSummary = (docId: string | null, status: string) => {
             setError(data.message)
             source.close()
         })
+
+        source.onerror = () => {
+            source.close()
+        }
 
         return () => {
             source.close()
