@@ -9,6 +9,7 @@ import logging
 from pathlib import Path
 from typing import AsyncGenerator
 
+from chromadb.errors import NotFoundError
 from fastapi import UploadFile
 from groq import AsyncGroq
 from sentence_transformers import SentenceTransformer
@@ -105,7 +106,10 @@ def delete_document(document_id: str) -> None:
     delete_summary(document_id)
     delete_progress(document_id)
     client = get_chroma_client(document_id)
-    client.delete_collection(name=document_id)
+    try:
+        client.delete_collection(name=document_id)
+    except NotFoundError:
+        pass
 
     (Path(settings.UPLOAD_DIR) / f"{document_id}.pdf").unlink(missing_ok=True)
 
@@ -174,5 +178,5 @@ def document_exists(document_id: str) -> bool:
     try:
         client.get_collection(name=document_id)
         return True
-    except ValueError:
+    except NotFoundError:
         return False
