@@ -1,4 +1,4 @@
-import { History, X } from "lucide-react"
+import { X } from "lucide-react"
 import type { DocumentHistory } from "../hooks/useDocumentHistory"
 import { HistoryItem } from "./HistoryItem"
 
@@ -40,7 +40,7 @@ export const RecentDocuments = ({ documents, active_doc_id, onSelectDocument, on
                 </div>
 
                 {/* Lista de documentos scrolleable */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2 chat-scrollbar">
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-3 chat-scrollbar flex flex-col gap-2">
                     {documents.map((doc) => (
                         <HistoryItem
                             key={doc.doc_id}

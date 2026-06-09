@@ -25,12 +25,12 @@ export const HistoryItem = ({ doc_id, session_id, filename, saved_at, isActive, 
                     }`}>
                     <MessageSquare size={18} />
                 </span>
-                <div className="overflow-hidden pr-6">
+                <div className="overflow-hidden pr-7 flex flex-col gap-1">
                     <p className={`text-body-md font-geist truncate ${isActive ? "font-bold text-on-surface" : "font-medium text-on-surface-variant group-hover:text-on-surface"
                         }`}>
                         {filename}
                     </p>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-2">
                         <span className="text-outline">
                             <FileText size={12} />
                         </span>
