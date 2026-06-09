@@ -40,7 +40,7 @@ export const RecentDocuments = ({ documents, active_doc_id, onSelectDocument, on
                 </div>
 
                 {/* Lista de documentos scrolleable */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2 chat-scrollbar">
                     {documents.map((doc) => (
                         <HistoryItem
                             key={doc.doc_id}
@@ -59,16 +59,6 @@ export const RecentDocuments = ({ documents, active_doc_id, onSelectDocument, on
                             No hay documentos recientes.
                         </p>
                     )}
-                </div>
-
-                {/* History Footer */}
-                <div className="p-4 border-t border-outline-variant">
-                    <button className="w-full py-2 px-4 border border-outline-variant rounded-lg font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all flex items-center justify-center gap-2 cursor-pointer">
-                        <span>
-                            <History size={16} />
-                        </span>
-                        Historial completo
-                    </button>
                 </div>
             </section>
         </>
