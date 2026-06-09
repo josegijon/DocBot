@@ -42,8 +42,8 @@ export const formatDate = (isoString: string): string => {
 
     const time = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
 
-    if (isToday) return `Today, ${time}`
-    if (isYesterday) return `Yesterday`
+    if (isToday) return `Hoy, ${time}`
+    if (isYesterday) return `Ayer`
 
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
