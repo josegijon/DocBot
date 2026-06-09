@@ -44,7 +44,7 @@ export const HistoryItem = ({ doc_id, session_id, filename, saved_at, isActive, 
                         e.stopPropagation()
                         onRemove(doc_id)
                     }}
-                    className="text-on-surface-variant hover:text-error opacity-0 group-hover/item:opacity-100 transition-opacity absolute right-3 top-3 cursor-pointer"
+                    className="text-on-surface-variant hover:text-error opacity-100 lg:opacity-0 lg:group-hover/item:opacity-100 transition-opacity absolute right-3 top-3 cursor-pointer"
                 >
                     <Trash2 size={18} />
                 </button>
