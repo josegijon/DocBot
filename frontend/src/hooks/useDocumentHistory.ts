@@ -21,7 +21,7 @@ export const useDocumentHistory = () => {
             saved_at: new Date().toISOString()
         }
 
-        const updateDocuments = [newDocument, ...documents].slice(0, 10);
+        const updateDocuments = [newDocument, ...documents];
 
         setDocuments(updateDocuments);
         localStorage.setItem("docbot_documents", JSON.stringify(updateDocuments))
