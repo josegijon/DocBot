@@ -123,7 +123,7 @@ export const App = () => {
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
         onSelectDocument={handleSelectDocument}
-        onRemoveDocument={(doc_id) => setDocToDelete(doc_id)}
+        onRemoveDocument={(doc_id) => { setDocToDelete(doc_id); setIsHistoryOpen(false) }}
       />
 
       {docToDelete && <ConfirmModal onConfirm={() => { handleRemoveDocument(docToDelete!); setDocToDelete(null) }} onCancel={() => setDocToDelete(null)} />}
