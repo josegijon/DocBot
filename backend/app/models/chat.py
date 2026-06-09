@@ -25,12 +25,12 @@ class ChatRequest(BaseModel):
     Attributes:
         doc_id: Identificador único del documento sobre el que se consulta.
         session_id: Identificador único de la sesión de conversación.
-        message: Texto del mensaje del usuario, entre 5 y 500 caracteres.
+        message: Texto del mensaje del usuario, entre 1 y 500 caracteres.
     """
 
     doc_id: UUID
     session_id: UUID
-    message: Annotated[str, StringConstraints(min_length=5, max_length=500)]
+    message: Annotated[str, StringConstraints(min_length=1, max_length=500)]
 
     @field_validator("message", mode="before")
     @classmethod
