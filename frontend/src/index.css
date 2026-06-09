@@ -13,6 +13,12 @@
   src: url('./assets/fonts/JetBrainsMono-Medium.ttf');
 }
 
+@font-face {
+  font-family: "JetBrains Mono";
+  font-weight: 700;
+  src: url('./assets/fonts/JetBrainsMono-Bold.ttf');
+}
+
 /* Geist */
 @font-face {
   font-family: "Geist";
@@ -48,6 +54,7 @@
   --color-surface-container-low: #1c1b1b;
   --color-surface-container-lowest: #0e0e0e;
   --color-surface-variant: #353534;
+  --color-on-error: #690005;
   --color-on-surface: #e5e2e1;
   --color-on-surface-variant: #c7c4d7;
   --color-on-primary: #1000a9;
