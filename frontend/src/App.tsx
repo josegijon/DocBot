@@ -64,6 +64,7 @@ export const App = () => {
       }
 
       removeDocument(doc_id)
+      toast.success("Documento eliminado")
     } catch {
       toast.error("No se pudo conectar con el servidor")
     }
