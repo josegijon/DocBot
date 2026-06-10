@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import type { Message } from "../types/chat.types"
+import { getChatStorageKey } from "../utils/storageKeys"
 
 export const useChat = (docId: string | null, sessionId: string) => {
     const [messages, setMessages] = useState<Message[]>([])
@@ -16,7 +17,7 @@ export const useChat = (docId: string | null, sessionId: string) => {
             return
         }
 
-        const stored = localStorage.getItem(`docbot_chat_${sessionId}`)
+        const stored = localStorage.getItem(getChatStorageKey(sessionId))
         isInitialLoadRef.current = true
         setMessages(stored ? JSON.parse(stored) : [])
 
@@ -29,7 +30,7 @@ export const useChat = (docId: string | null, sessionId: string) => {
         }
 
         if (!sessionId || !docId || messages.length === 0 || sessionId !== currentSessionRef.current) return
-        localStorage.setItem(`docbot_chat_${sessionId}`, JSON.stringify(messages))
+        localStorage.setItem(getChatStorageKey(sessionId), JSON.stringify(messages))
     }, [messages, sessionId])
 
     const sendMessage = async (userMessage: string) => {
@@ -127,7 +128,7 @@ export const useChat = (docId: string | null, sessionId: string) => {
     }
 
     const resetMessages = () => {
-        localStorage.removeItem(`docbot_chat_${sessionId}`)
+        localStorage.removeItem(getChatStorageKey(sessionId))
         setMessages([])
     }
 
