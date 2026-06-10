@@ -125,7 +125,7 @@ export const useChat = (docId: string | null, sessionId: string) => {
                         if (isErrorEvent) break;
 
                     } catch (parseError) {
-                        console.error("Error parseando el JSON de SSE:", parseError);
+                        // parse error: stream continues with next line
                     }
                 }
 
