@@ -15,6 +15,7 @@ import { RecentDocuments } from './components/RecentDocuments';
 import { ConfirmModal } from './components/ConfirmModal';
 import { FileText, MessagesSquare } from 'lucide-react';
 import { toast } from 'sonner';
+import { getChatStorageKey, getSummaryStorageKey } from './utils/storageKeys';
 
 export const App = () => {
   const [docId, setDocId] = useState<string | null>(null)
@@ -52,8 +53,8 @@ export const App = () => {
   const handleRemoveDocument = async (doc_id: string) => {
     try {
       const doc = documents.find(d => d.doc_id === doc_id)
-      localStorage.removeItem(`docbot_summary_${doc_id}`)
-      if (doc) localStorage.removeItem(`docbot_chat_${doc.session_id}`)
+      localStorage.removeItem(getSummaryStorageKey(doc_id))
+      if (doc) localStorage.removeItem(getChatStorageKey(doc.session_id))
       if (doc_id === docId) handleNewDocument();
 
       const response = await fetch(`/api/documents/${doc_id}`, { method: "DELETE" })

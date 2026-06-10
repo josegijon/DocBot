@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { getSummaryStorageKey } from "../utils/storageKeys"
 
 export const useSummary = (docId: string | null, status: string) => {
     const [summary, setSummary] = useState<string>("")
@@ -14,7 +15,7 @@ export const useSummary = (docId: string | null, status: string) => {
     useEffect(() => {
         if (!docId || status !== "ready") return
 
-        const cached = localStorage.getItem(`docbot_summary_${docId}`)
+        const cached = localStorage.getItem(getSummaryStorageKey(docId))
         if (cached) {
             setSummary(cached)
             setIsDone(true)
@@ -29,7 +30,7 @@ export const useSummary = (docId: string | null, status: string) => {
             const data = JSON.parse(event.data)
 
             if (data.done) {
-                localStorage.setItem(`docbot_summary_${docId}`, accumulatedSummary)
+                localStorage.setItem(getSummaryStorageKey(docId), accumulatedSummary)
                 setIsDone(true)
                 source.close()
                 return

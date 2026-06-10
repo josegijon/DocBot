@@ -1,15 +1,9 @@
 import { useEffect, useRef, useState } from "react"
+import type { Message } from "../types/chat.types"
+import { getChatStorageKey } from "../utils/storageKeys"
 
-interface Source {
-    page: number
-    text: string
-}
-
-interface Message {
-    role: "user" | "assistant"
-    content: string
-    sources?: Source[]
-}
+const SSE_EVENT_STREAM_ERROR = "event: stream_error"
+const SSE_DATA_PREFIX = "data:"
 
 export const useChat = (docId: string | null, sessionId: string) => {
     const [messages, setMessages] = useState<Message[]>([])
@@ -17,6 +11,7 @@ export const useChat = (docId: string | null, sessionId: string) => {
 
     const currentSessionRef = useRef(sessionId)
     const isInitialLoadRef = useRef(false)
+    const abortControllerRef = useRef<AbortController | null>(null)
 
     useEffect(() => {
         currentSessionRef.current = sessionId
@@ -26,10 +21,13 @@ export const useChat = (docId: string | null, sessionId: string) => {
             return
         }
 
-        const stored = localStorage.getItem(`docbot_chat_${sessionId}`)
+        const stored = localStorage.getItem(getChatStorageKey(sessionId))
         isInitialLoadRef.current = true
         setMessages(stored ? JSON.parse(stored) : [])
 
+        return () => {
+            abortControllerRef.current?.abort()
+        }
     }, [docId, sessionId])
 
     useEffect(() => {
@@ -39,7 +37,12 @@ export const useChat = (docId: string | null, sessionId: string) => {
         }
 
         if (!sessionId || !docId || messages.length === 0 || sessionId !== currentSessionRef.current) return
-        localStorage.setItem(`docbot_chat_${sessionId}`, JSON.stringify(messages))
+
+        const lastMessage = messages[messages.length - 1]
+        if (lastMessage.role === 'assistant' && lastMessage.content === '') return
+        if (lastMessage.role === 'assistant' && !lastMessage.sources) return
+
+        localStorage.setItem(getChatStorageKey(sessionId), JSON.stringify(messages))
     }, [messages, sessionId])
 
     const sendMessage = async (userMessage: string) => {
@@ -50,9 +53,13 @@ export const useChat = (docId: string | null, sessionId: string) => {
         setIsLoading(true)
 
         try {
+            abortControllerRef.current?.abort()
+            abortControllerRef.current = new AbortController()
+
             const response = await fetch("/api/chat/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+                signal: abortControllerRef.current.signal,
                 body: JSON.stringify({
                     doc_id: docId,
                     session_id: sessionId,
@@ -79,14 +86,14 @@ export const useChat = (docId: string | null, sessionId: string) => {
                     const trimmedLine = line.trim();
                     if (!trimmedLine) continue;
 
-                    if (trimmedLine.startsWith("event: stream_error")) {
+                    if (trimmedLine.startsWith(SSE_EVENT_STREAM_ERROR)) {
                         isErrorEvent = true;
                         continue;
                     }
 
-                    if (!trimmedLine.startsWith("data:")) continue;
+                    if (!trimmedLine.startsWith(SSE_DATA_PREFIX)) continue;
 
-                    const jsonStr = trimmedLine.replace("data:", "").trim();
+                    const jsonStr = trimmedLine.replace(SSE_DATA_PREFIX, "").trim();
                     if (!jsonStr) continue;
 
                     try {
@@ -117,8 +124,8 @@ export const useChat = (docId: string | null, sessionId: string) => {
 
                         if (isErrorEvent) break;
 
-                    } catch (e) {
-                        console.error("Error parseando el JSON de SSE:", e);
+                    } catch (parseError) {
+                        // parse error: stream continues with next line
                     }
                 }
 
@@ -126,7 +133,19 @@ export const useChat = (docId: string | null, sessionId: string) => {
             }
 
             setIsLoading(false)
-        } catch {
+        } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') {
+                setIsLoading(false)
+                setMessages(prev => {
+                    const lastMessage = prev[prev.length - 1]
+                    if (lastMessage.role === 'assistant' && !lastMessage.sources) {
+                        const updated = prev.slice(0, -1)
+                        return updated
+                    }
+                    return prev
+                })
+                return
+            }
             setIsLoading(false)
             setMessages(prev => {
                 const updated = [...prev];
@@ -137,7 +156,7 @@ export const useChat = (docId: string | null, sessionId: string) => {
     }
 
     const resetMessages = () => {
-        localStorage.removeItem(`docbot_chat_${sessionId}`)
+        localStorage.removeItem(getChatStorageKey(sessionId))
         setMessages([])
     }
 
