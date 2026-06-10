@@ -11,6 +11,7 @@ export const useChat = (docId: string | null, sessionId: string) => {
 
     const currentSessionRef = useRef(sessionId)
     const isInitialLoadRef = useRef(false)
+    const abortControllerRef = useRef<AbortController | null>(null)
 
     useEffect(() => {
         currentSessionRef.current = sessionId
@@ -24,6 +25,9 @@ export const useChat = (docId: string | null, sessionId: string) => {
         isInitialLoadRef.current = true
         setMessages(stored ? JSON.parse(stored) : [])
 
+        return () => {
+            abortControllerRef.current?.abort()
+        }
     }, [docId, sessionId])
 
     useEffect(() => {
@@ -33,6 +37,11 @@ export const useChat = (docId: string | null, sessionId: string) => {
         }
 
         if (!sessionId || !docId || messages.length === 0 || sessionId !== currentSessionRef.current) return
+
+        const lastMessage = messages[messages.length - 1]
+        if (lastMessage.role === 'assistant' && lastMessage.content === '') return
+        if (lastMessage.role === 'assistant' && !lastMessage.sources) return
+
         localStorage.setItem(getChatStorageKey(sessionId), JSON.stringify(messages))
     }, [messages, sessionId])
 
@@ -44,9 +53,13 @@ export const useChat = (docId: string | null, sessionId: string) => {
         setIsLoading(true)
 
         try {
+            abortControllerRef.current?.abort()
+            abortControllerRef.current = new AbortController()
+
             const response = await fetch("/api/chat/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+                signal: abortControllerRef.current.signal,
                 body: JSON.stringify({
                     doc_id: docId,
                     session_id: sessionId,
@@ -120,7 +133,19 @@ export const useChat = (docId: string | null, sessionId: string) => {
             }
 
             setIsLoading(false)
-        } catch {
+        } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') {
+                setIsLoading(false)
+                setMessages(prev => {
+                    const lastMessage = prev[prev.length - 1]
+                    if (lastMessage.role === 'assistant' && !lastMessage.sources) {
+                        const updated = prev.slice(0, -1)
+                        return updated
+                    }
+                    return prev
+                })
+                return
+            }
             setIsLoading(false)
             setMessages(prev => {
                 const updated = [...prev];
