@@ -2,12 +2,7 @@
 import { BookOpenText } from "lucide-react"
 import { SourceCard } from "./SourceCard"
 import { formatMessageContent } from "../utils/format"
-
-interface Source {
-    page: number
-    text: string
-    score?: number
-}
+import type { Source } from "../types/chat.types"
 
 interface Message {
     role: "user" | "assistant"

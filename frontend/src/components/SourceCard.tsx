@@ -1,9 +1,5 @@
+import type { Source } from "../types/chat.types"
 
-interface Source {
-    page: number
-    text: string
-    score?: number
-}
 
 interface SourceCardProps {
     source: Source

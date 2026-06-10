@@ -1,15 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-
-interface Source {
-    page: number
-    text: string
-}
-
-interface Message {
-    role: "user" | "assistant"
-    content: string
-    sources?: Source[]
-}
+import type { Message } from "../types/chat.types"
 
 export const useChat = (docId: string | null, sessionId: string) => {
     const [messages, setMessages] = useState<Message[]>([])
