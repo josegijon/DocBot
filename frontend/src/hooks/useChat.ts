@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from "react"
 import type { Message } from "../types/chat.types"
 import { getChatStorageKey } from "../utils/storageKeys"
 
+const SSE_EVENT_STREAM_ERROR = "event: stream_error"
+const SSE_DATA_PREFIX = "data:"
+
 export const useChat = (docId: string | null, sessionId: string) => {
     const [messages, setMessages] = useState<Message[]>([])
     const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -70,14 +73,14 @@ export const useChat = (docId: string | null, sessionId: string) => {
                     const trimmedLine = line.trim();
                     if (!trimmedLine) continue;
 
-                    if (trimmedLine.startsWith("event: stream_error")) {
+                    if (trimmedLine.startsWith(SSE_EVENT_STREAM_ERROR)) {
                         isErrorEvent = true;
                         continue;
                     }
 
-                    if (!trimmedLine.startsWith("data:")) continue;
+                    if (!trimmedLine.startsWith(SSE_DATA_PREFIX)) continue;
 
-                    const jsonStr = trimmedLine.replace("data:", "").trim();
+                    const jsonStr = trimmedLine.replace(SSE_DATA_PREFIX, "").trim();
                     if (!jsonStr) continue;
 
                     try {
@@ -108,8 +111,8 @@ export const useChat = (docId: string | null, sessionId: string) => {
 
                         if (isErrorEvent) break;
 
-                    } catch (e) {
-                        console.error("Error parseando el JSON de SSE:", e);
+                    } catch (parseError) {
+                        console.error("Error parseando el JSON de SSE:", parseError);
                     }
                 }
 
