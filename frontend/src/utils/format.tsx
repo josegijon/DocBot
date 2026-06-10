@@ -1,19 +1,22 @@
-export const formatMessageContent = (text: string) => {
-    const regex = /([\[\(](?:P[áa]g|P[áa]gina)\.?\s*\d+(?:-\d+)?[\)\]])/gi;
-    const parts = text.split(regex);
+import type { ReactNode } from 'react'
+
+const PAGE_REFERENCE_SPLITTER = /([\[\(](?:P[áa]g|P[áa]gina)\.?\s*\d+(?:-\d+)?[\)\]])/gi;
+
+export const formatMessageContent = (text: string): ReactNode[] => {
+    const parts = text.split(PAGE_REFERENCE_SPLITTER);
 
     return parts.map((part, index) => {
-        const isPageTag = part.match(/^[\[\(](?:P[áa]g|P[áa]gina)\.?\s*(\d+(?:-\d+)?)[\]\)]$/i);
+        const pageReferenceMatch = part.match(/^[\[\(](?:P[áa]g|P[áa]gina)\.?\s*(\d+(?:-\d+)?)[\]\)]$/i);
 
-        if (isPageTag) {
-            const pageRange = isPageTag[1];
+        if (pageReferenceMatch) {
+            const pageRange = pageReferenceMatch[1];
 
             const isRange = pageRange.includes("-");
             const tooltipText = isRange ? `Páginas ${pageRange}` : `Página ${pageRange}`;
 
             return (
                 <sup
-                    key={index}
+                    key={`ref-${index}`}
                     className="font-jetbrains text-primary cursor-help font-medium select-none text-xs"
                     title={tooltipText}
                 >
@@ -27,6 +30,7 @@ export const formatMessageContent = (text: string) => {
 
 export const formatDate = (isoString: string): string => {
     const date = new Date(isoString)
+    if (isNaN(date.getTime())) return '-'
     const now = new Date()
 
     const isToday = date.getDate() === now.getDate() &&
@@ -40,10 +44,10 @@ export const formatDate = (isoString: string): string => {
         date.getMonth() === yesterday.getMonth() &&
         date.getFullYear() === yesterday.getFullYear()
 
-    const time = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    const time = date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
 
     if (isToday) return `Hoy, ${time}`
     if (isYesterday) return `Ayer`
 
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    return date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric', year: 'numeric' })
 }
