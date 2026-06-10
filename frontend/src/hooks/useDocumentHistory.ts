@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { DOCUMENTS_STORAGE_KEY } from "../utils/storageKeys";
 
 export interface DocumentHistory {
     doc_id: string;
@@ -9,7 +10,7 @@ export interface DocumentHistory {
 
 export const useDocumentHistory = () => {
     const [documents, setDocuments] = useState<DocumentHistory[]>(() => {
-        const stored = localStorage.getItem("docbot_documents");
+        const stored = localStorage.getItem(DOCUMENTS_STORAGE_KEY);
         return stored ? JSON.parse(stored) : [];
     });
 
@@ -24,18 +25,18 @@ export const useDocumentHistory = () => {
         const updateDocuments = [newDocument, ...documents];
 
         setDocuments(updateDocuments);
-        localStorage.setItem("docbot_documents", JSON.stringify(updateDocuments))
+        localStorage.setItem(DOCUMENTS_STORAGE_KEY, JSON.stringify(updateDocuments))
     }
 
     const removeDocument = (doc_id: string) => {
         const updateDocument = documents.filter((doc: DocumentHistory) => doc.doc_id !== doc_id);
         setDocuments(updateDocument);
-        localStorage.setItem("docbot_documents", JSON.stringify(updateDocument))
+        localStorage.setItem(DOCUMENTS_STORAGE_KEY, JSON.stringify(updateDocument))
     }
 
     const clearHistory = () => {
         setDocuments([]);
-        localStorage.removeItem("docbot_documents");
+        localStorage.removeItem(DOCUMENTS_STORAGE_KEY);
     }
 
     return { documents, addDocument, removeDocument, clearHistory }
