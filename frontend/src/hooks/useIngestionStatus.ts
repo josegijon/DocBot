@@ -5,7 +5,11 @@ interface IngestionStatus {
     progress: number
 }
 
-export const useIngestionStatus = (docId: string | null, isKnownReady: boolean = false) => {
+interface UseIngestionStatusReturn extends IngestionStatus {
+    resetStatus: () => void;
+}
+
+export const useIngestionStatus = (docId: string | null, isKnownReady: boolean = false): UseIngestionStatusReturn => {
     const [ingestionStatus, setIngestionStatus] = useState<IngestionStatus>({
         status: "processing",
         progress: 0,
@@ -26,7 +30,7 @@ export const useIngestionStatus = (docId: string | null, isKnownReady: boolean =
         const source = new EventSource(`/api/documents/${docId}/status`);
 
         source.onmessage = (event) => {
-            const data = JSON.parse(event.data);
+            const data = JSON.parse(event.data) as IngestionStatus;
             console.log(data);
             setIngestionStatus(data);
 
