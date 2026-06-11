@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react"
 import { getSummaryStorageKey } from "../utils/storageKeys"
+import type { IngestionStatus } from "../types/ingestionStatus.types";
 
-export const useSummary = (docId: string | null, status: string) => {
+interface UseSummaryReturn {
+    summary: string;
+    isDone: boolean;
+    error: string | null;
+    resetSummary: () => void;
+}
+
+export const useSummary = (docId: string | null, status: IngestionStatus): UseSummaryReturn => {
     const [summary, setSummary] = useState<string>("")
     const [isDone, setIsDone] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
