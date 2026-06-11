@@ -15,8 +15,13 @@ const saveDocuments = (docs: DocumentHistory[]): void => {
 };
 
 const loadDocuments = (): DocumentHistory[] => {
-    const stored = localStorage.getItem(DOCUMENTS_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
+    try {
+        const stored = localStorage.getItem(DOCUMENTS_STORAGE_KEY);
+        return stored ? JSON.parse(stored) : [];
+    } catch {
+        localStorage.removeItem(DOCUMENTS_STORAGE_KEY);
+        return [];
+    }
 };
 
 export const useDocumentHistory = (): UseDocumentHistoryReturn => {
@@ -31,6 +36,7 @@ export const useDocumentHistory = (): UseDocumentHistoryReturn => {
         };
 
         setDocuments(prev => {
+            if (prev.some(doc => doc.doc_id === doc_id)) return prev;
             const next = [newDocument, ...prev];
             saveDocuments(next);
             return next;
