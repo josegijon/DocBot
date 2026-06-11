@@ -10,10 +10,11 @@ interface UseIngestionStatusReturn extends IngestionStatus {
 }
 
 export const useIngestionStatus = (docId: string | null, isKnownReady: boolean = false): UseIngestionStatusReturn => {
-    const [ingestionStatus, setIngestionStatus] = useState<IngestionStatus>({
-        status: "processing",
-        progress: 0,
-    })
+    const [ingestionStatus, setIngestionStatus] = useState<IngestionStatus>(() =>
+        isKnownReady
+            ? { status: "ready", progress: 100 }
+            : { status: "processing", progress: 0 }
+    );
 
     const resetStatus = useCallback(() => {
         setIngestionStatus({ status: "processing", progress: 0 })
@@ -22,16 +23,10 @@ export const useIngestionStatus = (docId: string | null, isKnownReady: boolean =
     useEffect(() => {
         if (!docId) return;
 
-        if (isKnownReady) {
-            setIngestionStatus({ status: "ready", progress: 100 });
-            return;
-        }
-
         const source = new EventSource(`/api/documents/${docId}/status`);
 
         source.onmessage = (event) => {
             const data = JSON.parse(event.data) as IngestionStatus;
-            console.log(data);
             setIngestionStatus(data);
 
             if (data.progress >= 100 || data.status === "failed") {
