@@ -1,6 +1,6 @@
 import { X } from "lucide-react"
-import type { DocumentHistory } from "../hooks/useDocumentHistory"
 import { HistoryItem } from "./HistoryItem"
+import type { DocumentHistory } from "../types/document.types"
 
 interface RecentDocumentsProps {
     documents: DocumentHistory[]

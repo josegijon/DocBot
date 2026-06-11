@@ -1,43 +1,60 @@
-import { useState } from "react";
-import { DOCUMENTS_STORAGE_KEY } from "../utils/storageKeys";
+import { useCallback, useState } from "react";
 
-export interface DocumentHistory {
-    doc_id: string;
-    session_id: string;
-    filename: string;
-    saved_at: string;
+import { DOCUMENTS_STORAGE_KEY } from "../utils/storageKeys";
+import type { DocumentHistory } from "../types/document.types";
+
+interface UseDocumentHistoryReturn {
+    documents: DocumentHistory[];
+    addDocument: (doc_id: string, session_id: string, filename: string) => void;
+    removeDocument: (doc_id: string) => void;
+    clearHistory: () => void;
 }
 
-export const useDocumentHistory = () => {
-    const [documents, setDocuments] = useState<DocumentHistory[]>(() => {
+const saveDocuments = (docs: DocumentHistory[]): void => {
+    localStorage.setItem(DOCUMENTS_STORAGE_KEY, JSON.stringify(docs));
+};
+
+const loadDocuments = (): DocumentHistory[] => {
+    try {
         const stored = localStorage.getItem(DOCUMENTS_STORAGE_KEY);
         return stored ? JSON.parse(stored) : [];
-    });
+    } catch {
+        localStorage.removeItem(DOCUMENTS_STORAGE_KEY);
+        return [];
+    }
+};
 
-    const addDocument = (doc_id: string, session_id: string, filename: string) => {
-        const newDocument = {
+export const useDocumentHistory = (): UseDocumentHistoryReturn => {
+    const [documents, setDocuments] = useState<DocumentHistory[]>(loadDocuments);
+
+    const addDocument = useCallback((doc_id: string, session_id: string, filename: string) => {
+        const newDocument: DocumentHistory = {
             doc_id,
             session_id,
             filename,
             saved_at: new Date().toISOString()
-        }
+        };
 
-        const updateDocuments = [newDocument, ...documents];
+        setDocuments(prev => {
+            if (prev.some(doc => doc.doc_id === doc_id)) return prev;
+            const next = [newDocument, ...prev];
+            saveDocuments(next);
+            return next;
+        });
+    }, []);
 
-        setDocuments(updateDocuments);
-        localStorage.setItem(DOCUMENTS_STORAGE_KEY, JSON.stringify(updateDocuments))
-    }
+    const removeDocument = useCallback((doc_id: string) => {
+        setDocuments(prev => {
+            const next = prev.filter((doc: DocumentHistory) => doc.doc_id !== doc_id);
+            saveDocuments(next);
+            return next;
+        });
+    }, []);
 
-    const removeDocument = (doc_id: string) => {
-        const updateDocument = documents.filter((doc: DocumentHistory) => doc.doc_id !== doc_id);
-        setDocuments(updateDocument);
-        localStorage.setItem(DOCUMENTS_STORAGE_KEY, JSON.stringify(updateDocument))
-    }
-
-    const clearHistory = () => {
+    const clearHistory = useCallback(() => {
         setDocuments([]);
         localStorage.removeItem(DOCUMENTS_STORAGE_KEY);
-    }
+    }, []);
 
     return { documents, addDocument, removeDocument, clearHistory }
 }
