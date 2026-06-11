@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 interface IngestionStatus {
     status: "processing" | "ready" | "failed"
@@ -15,9 +15,9 @@ export const useIngestionStatus = (docId: string | null, isKnownReady: boolean =
         progress: 0,
     })
 
-    const resetStatus = () => {
+    const resetStatus = useCallback(() => {
         setIngestionStatus({ status: "processing", progress: 0 })
-    }
+    }, []);
 
     useEffect(() => {
         if (!docId) return;
