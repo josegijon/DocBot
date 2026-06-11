@@ -1,33 +1,32 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 interface IngestionStatus {
     status: "processing" | "ready" | "failed"
     progress: number
 }
 
-export const useIngestionStatus = (docId: string | null, isKnownReady: boolean = false) => {
-    const [ingestionStatus, setIngestionStatus] = useState<IngestionStatus>({
-        status: "processing",
-        progress: 0,
-    })
+interface UseIngestionStatusReturn extends IngestionStatus {
+    resetStatus: () => void;
+}
 
-    const resetStatus = () => {
+export const useIngestionStatus = (docId: string | null, isKnownReady: boolean = false): UseIngestionStatusReturn => {
+    const [ingestionStatus, setIngestionStatus] = useState<IngestionStatus>(() =>
+        isKnownReady
+            ? { status: "ready", progress: 100 }
+            : { status: "processing", progress: 0 }
+    );
+
+    const resetStatus = useCallback(() => {
         setIngestionStatus({ status: "processing", progress: 0 })
-    }
+    }, []);
 
     useEffect(() => {
         if (!docId) return;
 
-        if (isKnownReady) {
-            setIngestionStatus({ status: "ready", progress: 100 });
-            return;
-        }
-
         const source = new EventSource(`/api/documents/${docId}/status`);
 
         source.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            console.log(data);
+            const data = JSON.parse(event.data) as IngestionStatus;
             setIngestionStatus(data);
 
             if (data.progress >= 100 || data.status === "failed") {
@@ -36,6 +35,7 @@ export const useIngestionStatus = (docId: string | null, isKnownReady: boolean =
         }
 
         source.onerror = () => {
+            setIngestionStatus({ status: "failed", progress: 0 })
             source.close();
         };
 
