@@ -35,6 +35,7 @@ export const useIngestionStatus = (docId: string | null, isKnownReady: boolean =
         }
 
         source.onerror = () => {
+            setIngestionStatus({ status: "failed", progress: 0 })
             source.close();
         };
 
