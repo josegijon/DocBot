@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react"
 import { getSummaryStorageKey } from "../utils/storageKeys"
 import type { IngestionStatus } from "../types/ingestionStatus.types";
 
+const SSE_EVENT_STREAM_ERROR = "stream_error"
+
 type SummaryStreamEvent =
     | { token: string; done?: never; message?: never }
     | { done: true; token?: never; message?: never }
@@ -55,7 +57,7 @@ export const useSummary = (docId: string | null, status: IngestionStatus): UseSu
             }
         }
 
-        source.addEventListener("stream_error", (event) => {
+        source.addEventListener(SSE_EVENT_STREAM_ERROR, (event) => {
             const data = JSON.parse((event as MessageEvent).data) as SummaryStreamEvent
             setError(data.message ?? "Error desconocido en el stream")
             source.close()
