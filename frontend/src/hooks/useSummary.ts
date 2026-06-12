@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { getSummaryStorageKey } from "../utils/storageKeys"
 import type { IngestionStatus } from "../types/ingestionStatus.types";
 
@@ -19,11 +19,11 @@ export const useSummary = (docId: string | null, status: IngestionStatus): UseSu
     const [isDone, setIsDone] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
 
-    const resetSummary = () => {
+    const resetSummary = useCallback(() => {
         setSummary("")
         setError(null)
         setIsDone(false)
-    }
+    }, [])
 
     useEffect(() => {
         if (!docId || status !== "ready") return
