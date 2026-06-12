@@ -63,7 +63,9 @@ export const useSummary = (docId: string | null, status: IngestionStatus): UseSu
             source.close()
         })
 
-        source.onerror = () => {
+        source.onerror = (event) => {
+            console.error("EventSource error en useSummary:", event)
+            setError("No se pudo conectar con el servidor. Por favor, inténtalo de nuevo.")
             source.close()
         }
 
