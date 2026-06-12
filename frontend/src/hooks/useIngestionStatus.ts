@@ -22,7 +22,14 @@ export const useIngestionStatus = (docId: string | null, isKnownReady: boolean =
     }, []);
 
     useEffect(() => {
+        if (isKnownReady) {
+            setIngestionStatus({ status: "ready", progress: 100 })
+        }
+    }, [isKnownReady])
+
+    useEffect(() => {
         if (!docId) return;
+        if (!docId || isKnownReady) return;
 
         const source = new EventSource(`/api/documents/${docId}/status`);
 
