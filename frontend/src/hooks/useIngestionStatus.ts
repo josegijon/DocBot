@@ -1,16 +1,17 @@
 import { useCallback, useEffect, useState } from "react"
+import type { IngestionStatus } from "../types/ingestionStatus.types";
 
-interface IngestionStatus {
-    status: "processing" | "ready" | "failed"
+interface IngestionState {
+    status: IngestionStatus
     progress: number
 }
 
-interface UseIngestionStatusReturn extends IngestionStatus {
+interface UseIngestionStatusReturn extends IngestionState {
     resetStatus: () => void;
 }
 
 export const useIngestionStatus = (docId: string | null, isKnownReady: boolean = false): UseIngestionStatusReturn => {
-    const [ingestionStatus, setIngestionStatus] = useState<IngestionStatus>(() =>
+    const [ingestionStatus, setIngestionStatus] = useState<IngestionState>(() =>
         isKnownReady
             ? { status: "ready", progress: 100 }
             : { status: "processing", progress: 0 }
@@ -21,12 +22,19 @@ export const useIngestionStatus = (docId: string | null, isKnownReady: boolean =
     }, []);
 
     useEffect(() => {
+        if (isKnownReady) {
+            setIngestionStatus({ status: "ready", progress: 100 })
+        }
+    }, [isKnownReady])
+
+    useEffect(() => {
         if (!docId) return;
+        if (!docId || isKnownReady) return;
 
         const source = new EventSource(`/api/documents/${docId}/status`);
 
         source.onmessage = (event) => {
-            const data = JSON.parse(event.data) as IngestionStatus;
+            const data = JSON.parse(event.data) as IngestionState;
             setIngestionStatus(data);
 
             if (data.progress >= 100 || data.status === "failed") {

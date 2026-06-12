@@ -1,16 +1,31 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { getSummaryStorageKey } from "../utils/storageKeys"
+import type { IngestionStatus } from "../types/ingestionStatus.types";
 
-export const useSummary = (docId: string | null, status: string) => {
+const SSE_EVENT_STREAM_ERROR = "stream_error"
+
+type SummaryStreamEvent =
+    | { token: string; done?: never; message?: never }
+    | { done: true; token?: never; message?: never }
+    | { message: string; token?: never; done?: never }
+
+interface UseSummaryReturn {
+    summary: string;
+    isDone: boolean;
+    error: string | null;
+    resetSummary: () => void;
+}
+
+export const useSummary = (docId: string | null, status: IngestionStatus): UseSummaryReturn => {
     const [summary, setSummary] = useState<string>("")
     const [isDone, setIsDone] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
 
-    const resetSummary = () => {
+    const resetSummary = useCallback(() => {
         setSummary("")
         setError(null)
         setIsDone(false)
-    }
+    }, [])
 
     useEffect(() => {
         if (!docId || status !== "ready") return
@@ -27,7 +42,7 @@ export const useSummary = (docId: string | null, status: string) => {
         let accumulatedSummary = ""
 
         source.onmessage = (event) => {
-            const data = JSON.parse(event.data)
+            const data = JSON.parse(event.data) as SummaryStreamEvent
 
             if (data.done) {
                 localStorage.setItem(getSummaryStorageKey(docId), accumulatedSummary)
@@ -42,13 +57,15 @@ export const useSummary = (docId: string | null, status: string) => {
             }
         }
 
-        source.addEventListener("stream_error", (event) => {
-            const data = JSON.parse(event.data)
-            setError(data.message)
+        source.addEventListener(SSE_EVENT_STREAM_ERROR, (event) => {
+            const data = JSON.parse((event as MessageEvent).data) as SummaryStreamEvent
+            setError(data.message ?? "Error desconocido en el stream")
             source.close()
         })
 
-        source.onerror = () => {
+        source.onerror = (event) => {
+            console.error("EventSource error en useSummary:", event)
+            setError("No se pudo conectar con el servidor. Por favor, inténtalo de nuevo.")
             source.close()
         }
 
