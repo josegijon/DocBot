@@ -2,6 +2,11 @@ import { useEffect, useState } from "react"
 import { getSummaryStorageKey } from "../utils/storageKeys"
 import type { IngestionStatus } from "../types/ingestionStatus.types";
 
+type SummaryStreamEvent =
+    | { token: string; done?: never; message?: never }
+    | { done: true; token?: never; message?: never }
+    | { message: string; token?: never; done?: never }
+
 interface UseSummaryReturn {
     summary: string;
     isDone: boolean;
@@ -35,7 +40,7 @@ export const useSummary = (docId: string | null, status: IngestionStatus): UseSu
         let accumulatedSummary = ""
 
         source.onmessage = (event) => {
-            const data = JSON.parse(event.data)
+            const data = JSON.parse(event.data) as SummaryStreamEvent
 
             if (data.done) {
                 localStorage.setItem(getSummaryStorageKey(docId), accumulatedSummary)
@@ -51,8 +56,8 @@ export const useSummary = (docId: string | null, status: IngestionStatus): UseSu
         }
 
         source.addEventListener("stream_error", (event) => {
-            const data = JSON.parse(event.data)
-            setError(data.message)
+            const data = JSON.parse((event as MessageEvent).data) as SummaryStreamEvent
+            setError(data.message ?? "Error desconocido en el stream")
             source.close()
         })
 
