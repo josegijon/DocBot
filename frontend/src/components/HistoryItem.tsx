@@ -1,11 +1,8 @@
 import { FileText, MessageSquare, Trash2 } from "lucide-react"
 import { formatDate } from "../utils/format"
+import type { DocumentHistory } from "../types/document.types"
 
-interface HistoryItemProps {
-    doc_id: string
-    session_id: string
-    filename: string
-    saved_at: string
+interface HistoryItemProps extends Pick<DocumentHistory, "doc_id" | "session_id" | "filename" | "saved_at"> {
     isActive: boolean
     onSelect: (doc_id: string, session_id: string) => void
     onRemove: (doc_id: string) => void
