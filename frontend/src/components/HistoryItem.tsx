@@ -32,7 +32,7 @@ export const HistoryItem = ({ doc_id, session_id, filename, saved_at, isActive, 
             <button
                 onClick={() => onSelect(doc_id, session_id)}
                 aria-current={isActive ? "true" : undefined}
-                className={`w-full text-left p-3 relative cursor-pointer transition-all active:scale-[0.98] border ${itemButtonClass}`}>
+                className={`w-full text-left p-3 relative cursor-pointer transition-all active:scale-[0.98] border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${itemButtonClass}`}>
                 <div className="flex items-start gap-3">
                     <span className={`mt-0.5 ${iconClass}`}>
                         <MessageSquare size={18} aria-hidden="true" />
@@ -60,7 +60,7 @@ export const HistoryItem = ({ doc_id, session_id, filename, saved_at, isActive, 
                 onClick={handleRemove}
                 aria-label={`Eliminar ${filename}`}
                 title={`Eliminar ${filename}`}
-                className="text-on-surface-variant hover:text-error opacity-100 lg:opacity-0 lg:group-hover/item:opacity-100 transition-opacity absolute right-3 top-3 cursor-pointer"
+                className="text-on-surface-variant hover:text-error opacity-100 lg:opacity-0 lg:group-hover/item:opacity-100 lg:focus-visible:opacity-100 transition-opacity absolute right-3 top-3 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error focus-visible:rounded"
             >
                 <Trash2 size={18} aria-hidden="true" />
             </button>
