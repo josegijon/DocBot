@@ -11,10 +11,17 @@ interface RecentDocumentsProps {
     isOpen: boolean
 }
 
+const PANEL_TITLE = "Recientes"
+const EMPTY_STATE_TEXT = "No hay documentos recientes."
+
 export const RecentDocuments = ({ documents, active_doc_id, onSelectDocument, onRemoveDocument, onClose, isOpen }: RecentDocumentsProps) => {
+
+    const sectionClass = isOpen
+        ? "translate-x-0 shadow-2xl"
+        : "translate-x-full"
+
     return (
         <>
-            {/* Overlay oscuro */}
             {isOpen && (
                 <div
                     className="fixed inset-0 bg-black/40 z-51 backdrop-blur-[2px] transition-opacity"
@@ -22,14 +29,12 @@ export const RecentDocuments = ({ documents, active_doc_id, onSelectDocument, on
                 />
             )}
 
-            {/* Panel lateral */}
             <section
-                className={`fixed top-0 right-0 h-full z-52 w-72 shrink-0 bg-surface border-l border-outline-variant flex flex-col transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0 shadow-2xl" : "translate-x-full"
-                    }`}
+                className={`fixed top-0 right-0 h-full z-52 w-72 shrink-0 bg-surface border-l border-outline-variant flex flex-col transition-transform duration-300 ease-in-out ${sectionClass}`}
             >
                 <div className="p-4 border-b border-outline-variant flex items-center justify-between">
                     <h2 className="font-geist text-[14px] font-bold uppercase tracking-widest text-on-surface-variant">
-                        Recientes
+                        {PANEL_TITLE}
                     </h2>
                     <button
                         onClick={onClose}
@@ -39,7 +44,6 @@ export const RecentDocuments = ({ documents, active_doc_id, onSelectDocument, on
                     </button>
                 </div>
 
-                {/* Lista de documentos scrolleable */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-3 chat-scrollbar flex flex-col gap-2">
                     {documents.map((doc) => (
                         <HistoryItem
@@ -56,7 +60,7 @@ export const RecentDocuments = ({ documents, active_doc_id, onSelectDocument, on
 
                     {documents.length === 0 && (
                         <p className="text-center text-on-surface-variant text-body-sm mt-4 font-geist">
-                            No hay documentos recientes.
+                            {EMPTY_STATE_TEXT}
                         </p>
                     )}
                 </div>
