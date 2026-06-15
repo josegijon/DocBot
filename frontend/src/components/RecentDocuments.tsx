@@ -4,7 +4,7 @@ import type { DocumentHistory } from "../types/document.types"
 
 interface RecentDocumentsProps {
     documents: DocumentHistory[]
-    active_doc_id: string
+    active_doc_id: string | null
     onSelectDocument: (doc_id: string, session_id: string) => void
     onRemoveDocument: (doc_id: string) => void
     onClose: () => void
