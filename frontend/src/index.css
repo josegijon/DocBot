@@ -43,6 +43,10 @@
   --font-jetbrains: "JetBrains Mono";
   --font-geist: "Geist";
 
+  /* Size */
+  --text-2xs: 0.6875rem;
+  --leading-2xs: 1rem;
+
   /* Colors */
   --color-primary: #c0c1ff;
   --color-outline-variant: #464554;
