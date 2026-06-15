@@ -35,15 +35,18 @@ export const HistoryItem = ({ doc_id, session_id, filename, saved_at, isActive, 
                 className={`w-full text-left p-3 relative cursor-pointer transition-all active:scale-[0.98] border ${itemButtonClass}`}>
                 <div className="flex items-start gap-3">
                     <span className={`mt-0.5 ${iconClass}`}>
-                        <MessageSquare size={18} />
+                        <MessageSquare size={18} aria-hidden="true" />
                     </span>
                     <div className="overflow-hidden pr-7 flex flex-col gap-1">
-                        <p className={`text-body-md font-geist truncate ${textClass}`}>
+                        <p
+                            title={filename}
+                            className={`text-body-md font-geist truncate ${textClass}`}
+                        >
                             {filename}
                         </p>
                         <div className="flex items-center gap-2">
                             <span className="text-outline">
-                                <FileText size={12} />
+                                <FileText size={12} aria-hidden="true" />
                             </span>
                             <p className="text-[10px] font-jetbrains text-outline uppercase">
                                 {formatDate(saved_at)}
@@ -59,7 +62,7 @@ export const HistoryItem = ({ doc_id, session_id, filename, saved_at, isActive, 
                 title={`Eliminar ${filename}`}
                 className="text-on-surface-variant hover:text-error opacity-100 lg:opacity-0 lg:group-hover/item:opacity-100 transition-opacity absolute right-3 top-3 cursor-pointer"
             >
-                <Trash2 size={18} />
+                <Trash2 size={18} aria-hidden="true" />
             </button>
         </div>
     )
