@@ -48,7 +48,7 @@ export const HistoryItem = ({ doc_id, session_id, filename, saved_at, isActive, 
                             <span className="text-outline">
                                 <FileText size={12} aria-hidden="true" />
                             </span>
-                            <p className="text-[10px] font-jetbrains text-outline uppercase">
+                            <p className="text-2xs leading-2xs font-jetbrains text-outline uppercase">
                                 {formatDate(saved_at)}
                             </p>
                         </div>
