@@ -6,7 +6,7 @@ interface UseFocusTrapOptions {
 }
 
 interface UseFocusTrapReturn<T extends HTMLElement> {
-    containerRef: React.RefObject<T>
+    containerRef: React.RefObject<T | null>
 }
 
 export const useFocusTrap = <T extends HTMLElement>({
