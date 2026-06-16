@@ -23,24 +23,33 @@ export const RecentDocuments = ({ documents, active_doc_id, onSelectDocument, on
     return (
         <>
             {isOpen && (
-                <div
+                <button
                     className="fixed inset-0 bg-black/40 z-51 backdrop-blur-[2px] transition-opacity"
                     onClick={onClose}
+                    aria-label="Cerrar panel de documentos recientes"
+                    tabIndex={-1}
                 />
             )}
 
             <section
                 className={`fixed top-0 right-0 h-full z-52 w-72 shrink-0 bg-surface border-l border-outline-variant flex flex-col transition-transform duration-300 ease-in-out ${sectionClass}`}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="recent-docs-panel-title"
             >
                 <div className="p-4 border-b border-outline-variant flex items-center justify-between">
-                    <h2 className="font-geist text-[14px] font-bold uppercase tracking-widest text-on-surface-variant">
+                    <h2
+                        id="recent-docs-panel-title"
+                        className="font-geist text-[14px] font-bold uppercase tracking-widest text-on-surface-variant"
+                    >
                         {PANEL_TITLE}
                     </h2>
                     <button
                         onClick={onClose}
+                        title="Cerrar"
                         className="p-1 rounded-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors cursor-pointer"
                     >
-                        <X size={18} />
+                        <X size={18} aria-hidden="true" />
                     </button>
                 </div>
 
