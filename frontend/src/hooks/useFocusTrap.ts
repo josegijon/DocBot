@@ -5,17 +5,25 @@ interface UseFocusTrapOptions {
     onClose: () => void
 }
 
+interface UseFocusTrapReturn<T extends HTMLElement> {
+    containerRef: React.RefObject<T>
+}
+
 export const useFocusTrap = <T extends HTMLElement>({
     isOpen,
     onClose,
-}: UseFocusTrapOptions) => {
+}: UseFocusTrapOptions): UseFocusTrapReturn<T> => {
     const containerRef = useRef<T>(null)
     const previousFocusRef = useRef<HTMLElement | null>(null)
 
     useEffect(() => {
         if (!isOpen) return
 
-        previousFocusRef.current = document.activeElement as HTMLElement
+        const activeEl = document.activeElement
+        if (activeEl instanceof HTMLElement) {
+            previousFocusRef.current = activeEl
+        }
+
         containerRef.current?.focus()
 
         const handleKeyDown = (e: KeyboardEvent) => {
