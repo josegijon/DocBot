@@ -1,34 +1,59 @@
 import { useEffect, useRef } from "react"
 
+const FOCUSABLE_ELEMENTS_SELECTOR = [
+    'button',
+    '[href]',
+    'input',
+    'select',
+    'textarea',
+    '[tabindex]:not([tabindex="-1"])',
+].join(', ')
+
+const KEY_ESCAPE = "Escape"
+const KEY_TAB = "Tab"
+
 interface UseFocusTrapOptions {
     isOpen: boolean
     onClose: () => void
 }
 
+interface UseFocusTrapReturn<T extends HTMLElement> {
+    containerRef: React.RefObject<T | null>
+}
+
 export const useFocusTrap = <T extends HTMLElement>({
     isOpen,
     onClose,
-}: UseFocusTrapOptions) => {
+}: UseFocusTrapOptions): UseFocusTrapReturn<T> => {
     const containerRef = useRef<T>(null)
     const previousFocusRef = useRef<HTMLElement | null>(null)
+    const onCloseRef = useRef(onClose)
+
+    useEffect(() => {
+        onCloseRef.current = onClose
+    })
 
     useEffect(() => {
         if (!isOpen) return
 
-        previousFocusRef.current = document.activeElement as HTMLElement
+        const activeEl = document.activeElement
+        if (activeEl instanceof HTMLElement) {
+            previousFocusRef.current = activeEl
+        }
+
         containerRef.current?.focus()
 
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "Escape") {
+            if (e.key === KEY_ESCAPE) {
                 e.preventDefault()
-                onClose()
+                onCloseRef.current()
                 return
             }
 
-            if (e.key !== "Tab") return
+            if (e.key !== KEY_TAB) return
 
             const focusable = containerRef.current?.querySelectorAll<HTMLElement>(
-                'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                FOCUSABLE_ELEMENTS_SELECTOR
             )
             if (!focusable || focusable.length === 0) return
 
@@ -54,7 +79,7 @@ export const useFocusTrap = <T extends HTMLElement>({
             document.removeEventListener("keydown", handleKeyDown)
             previousFocusRef.current?.focus()
         }
-    }, [isOpen, onClose])
+    }, [isOpen])
 
     return { containerRef }
 }
