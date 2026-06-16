@@ -1,5 +1,17 @@
 import { useEffect, useRef } from "react"
 
+const FOCUSABLE_ELEMENTS_SELECTOR = [
+    'button',
+    '[href]',
+    'input',
+    'select',
+    'textarea',
+    '[tabindex]:not([tabindex="-1"])',
+].join(', ')
+
+const KEY_ESCAPE = "Escape"
+const KEY_TAB = "Tab"
+
 interface UseFocusTrapOptions {
     isOpen: boolean
     onClose: () => void
@@ -32,16 +44,16 @@ export const useFocusTrap = <T extends HTMLElement>({
         containerRef.current?.focus()
 
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "Escape") {
+            if (e.key === KEY_ESCAPE) {
                 e.preventDefault()
                 onCloseRef.current()
                 return
             }
 
-            if (e.key !== "Tab") return
+            if (e.key !== KEY_TAB) return
 
             const focusable = containerRef.current?.querySelectorAll<HTMLElement>(
-                'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                FOCUSABLE_ELEMENTS_SELECTOR
             )
             if (!focusable || focusable.length === 0) return
 
