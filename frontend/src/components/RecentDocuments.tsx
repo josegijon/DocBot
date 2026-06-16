@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react"
 import { X } from "lucide-react"
 import { HistoryItem } from "./HistoryItem"
 import type { DocumentHistory } from "../types/document.types"
@@ -16,9 +17,58 @@ const EMPTY_STATE_TEXT = "No hay documentos recientes."
 
 export const RecentDocuments = ({ documents, active_doc_id, onSelectDocument, onRemoveDocument, onClose, isOpen }: RecentDocumentsProps) => {
 
+    const sectionRef = useRef<HTMLElement>(null)
+    const previousFocusRef = useRef<HTMLElement | null>(null)
+
     const sectionClass = isOpen
         ? "translate-x-0 shadow-2xl"
         : "translate-x-full"
+
+    useEffect(() => {
+        if (!isOpen) return
+
+        previousFocusRef.current = document.activeElement as HTMLElement
+
+        sectionRef.current?.focus()
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                e.preventDefault()
+                onClose()
+            }
+
+            // Focus trap: cicla dentro del panel en Tab y Shift+Tab
+            if (e.key === "Tab") {
+                const focusable = sectionRef.current?.querySelectorAll<HTMLElement>(
+                    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                )
+                if (!focusable || focusable.length === 0) return
+
+                const first = focusable[0]
+                const last = focusable[focusable.length - 1]
+
+                if (e.shiftKey) {
+                    // Shift+Tab desde el primer elemento → salta al último
+                    if (document.activeElement === first) {
+                        e.preventDefault()
+                        last.focus()
+                    }
+                } else {
+                    // Tab desde el último elemento → salta al primero
+                    if (document.activeElement === last) {
+                        e.preventDefault()
+                        first.focus()
+                    }
+                }
+            }
+        }
+
+        document.addEventListener("keydown", handleKeyDown)
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown)
+            previousFocusRef.current?.focus()
+        }
+    }, [isOpen, onClose])
 
     return (
         <>
@@ -32,10 +82,12 @@ export const RecentDocuments = ({ documents, active_doc_id, onSelectDocument, on
             )}
 
             <section
+                ref={sectionRef}
                 className={`fixed top-0 right-0 h-full z-52 w-72 shrink-0 bg-surface border-l border-outline-variant flex flex-col transition-transform duration-300 ease-in-out ${sectionClass}`}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="recent-docs-panel-title"
+                tabIndex={-1}
             >
                 <div className="p-4 border-b border-outline-variant flex items-center justify-between">
                     <h2
