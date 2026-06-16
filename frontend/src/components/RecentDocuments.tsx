@@ -105,7 +105,11 @@ export const RecentDocuments = ({ documents, active_doc_id, onSelectDocument, on
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-3 chat-scrollbar flex flex-col gap-2">
+                <div
+                    className="flex-1 overflow-y-auto p-3 chat-scrollbar flex flex-col gap-2"
+                    aria-live="polite"
+                    aria-atomic="true"
+                >
                     {documents.map((doc) => (
                         <HistoryItem
                             key={doc.doc_id}
