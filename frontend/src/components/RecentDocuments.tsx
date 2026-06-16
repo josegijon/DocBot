@@ -92,7 +92,7 @@ export const RecentDocuments = ({ documents, active_doc_id, onSelectDocument, on
                 <div className="p-4 border-b border-outline-variant flex items-center justify-between">
                     <h2
                         id="recent-docs-panel-title"
-                        className="font-geist text-[14px] font-bold uppercase tracking-widest text-on-surface-variant"
+                        className="font-geist text-sm  font-bold uppercase tracking-widest text-on-surface-variant"
                     >
                         {PANEL_TITLE}
                     </h2>
