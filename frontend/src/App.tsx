@@ -120,7 +120,7 @@ export const App = () => {
 
       <RecentDocuments
         documents={documents}
-        active_doc_id={docId || ""}
+        active_doc_id={docId}
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
         onSelectDocument={handleSelectDocument}
