@@ -12,7 +12,7 @@ export const Header = ({ onOpenHistory, isHistoryOpen }: HeaderProps) => {
             <div className="w-10"></div>
 
             <div className="mx-auto">
-                <h1 className="font-geist text-[25px] font-semibold text-on-surface tracking-[-0.04em] flex items-center justify-center">
+                <h1 className="font-geist text-headline-brand font-semibold text-on-surface tracking-[-0.04em] flex items-center justify-center">
                     <img
                         src={docbotLogo}
                         alt=""

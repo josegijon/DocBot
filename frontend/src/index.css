@@ -47,6 +47,9 @@
   --text-2xs: 0.6875rem;
   --leading-2xs: 1rem;
 
+  --text-headline-brand: 1.5625rem;
+  --leading-headline-brand: 1rem;
+
   /* Colors */
   --color-primary: #c0c1ff;
   --color-outline-variant: #464554;
