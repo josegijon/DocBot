@@ -17,6 +17,8 @@ import { FileText, MessagesSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import { getChatStorageKey, getSummaryStorageKey } from './utils/storageKeys';
 
+const UNNAMED_DOCUMENT_FALLBACK = "Documento sin nombre"
+
 export const App = () => {
   const [docId, setDocId] = useState<string | null>(null)
   const [filename, setFilename] = useState<string | null>(null)
@@ -33,10 +35,12 @@ export const App = () => {
   const { messages, isLoading, sendMessage, resetMessages } = useChat(docId, sessionId)
 
   const handleUploadSuccess = (docId: string, filename: string, fileSizeBytes: number) => {
+    const safeFilename = filename || UNNAMED_DOCUMENT_FALLBACK
+
     setDocId(docId)
-    setFilename(filename)
+    setFilename(safeFilename)
     setFileSizeBytes(fileSizeBytes)
-    addDocument(docId, sessionId, filename)
+    addDocument(docId, sessionId, safeFilename)
     setActiveTab('chat')
   }
 
