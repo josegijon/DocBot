@@ -20,22 +20,22 @@ import { getChatStorageKey, getSummaryStorageKey } from './utils/storageKeys';
 export const App = () => {
   const [docId, setDocId] = useState<string | null>(null)
   const [filename, setFilename] = useState<string | null>(null)
-  const [fileSize, setFileSize] = useState<number>(0)
   const [docToDelete, setDocToDelete] = useState<string | null>(null)
   const [sessionId, setSessionId] = useState<string>(() => uuidv4())
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
   const [isDocumentReady, setIsDocumentReady] = useState<boolean>(false)
   const [activeTab, setActiveTab] = useState<"document" | "chat">("document")
+  const [fileSizeBytes, setFileSizeBytes] = useState<number>(0)
 
   const { documents, addDocument, removeDocument } = useDocumentHistory()
   const { status, progress, resetStatus } = useIngestionStatus(docId, isDocumentReady)
   const { summary, isDone, resetSummary, error } = useSummary(docId, status)
   const { messages, isLoading, sendMessage, resetMessages } = useChat(docId, sessionId)
 
-  const handleUploadSuccess = (docId: string, filename: string, fileSize: number) => {
+  const handleUploadSuccess = (docId: string, filename: string, fileSizeBytes: number) => {
     setDocId(docId)
     setFilename(filename)
-    setFileSize(fileSize)
+    setFileSizeBytes(fileSizeBytes)
     addDocument(docId, sessionId, filename)
     setActiveTab('chat')
   }
@@ -45,7 +45,7 @@ export const App = () => {
     resetStatus()
     setDocId(null)
     setFilename(null)
-    setFileSize(0)
+    setFileSizeBytes(0)
     setSessionId(uuidv4())
     resetSummary()
   }
@@ -143,7 +143,7 @@ export const App = () => {
       <div className='flex flex-1 mt-16.25 overflow-hidden pb-16 lg:pb-0'>
         {/* Panel izq */}
         <aside className={`w-full lg:flex lg:w-[40%] xl:w-[30%] border-r border-outline-variant flex-col gap-6 bg-surface-container-lowest p-6 overflow-y-auto ${activeTab === 'document' ? "flex" : "hidden"}`}>
-          {docId && <HeaderSummary filename={filename} filesize={fileSize} />}
+          {docId && filename && <HeaderSummary filename={filename} fileSizeBytes={fileSizeBytes} />}
           {!docId && <UploadZone onUploadSuccess={handleUploadSuccess} />}
           {status !== "ready" && docId && <IngestionProgress progress={progress} status={status} filename={filename} />}
           {status === "ready" && <DocumentSummary summary={summary} isDone={isDone} error={error} />}

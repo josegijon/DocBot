@@ -1,11 +1,12 @@
 import { FileText } from "lucide-react"
+import { formatFileSize } from "../utils/format"
 
 interface HeaderSummaryProps {
-    filename: string | null
-    filesize: number
+    filename: string
+    fileSizeBytes: number
 }
 
-export const HeaderSummary = ({ filename, filesize }: HeaderSummaryProps) => {
+export const HeaderSummary = ({ filename, fileSizeBytes }: HeaderSummaryProps) => {
     return (
         <div className='border-b border-outline-variant pb-6'>
             <div className='flex items-center gap-4'>
@@ -17,7 +18,7 @@ export const HeaderSummary = ({ filename, filesize }: HeaderSummaryProps) => {
                         {filename}
                     </h2>
                     <span className='font-jetbrains text-code-sm text-on-surface-variant opacity-60'>
-                        PDF · {filesize} MB
+                        PDF · {formatFileSize(fileSizeBytes)}
                     </span>
                 </div>
             </div>

@@ -2,6 +2,13 @@ import type { ReactNode } from 'react'
 
 const PAGE_REFERENCE_SPLITTER = /([\[\(](?:P[áa]g|P[áa]gina)\.?\s*\d+(?:-\d+)?[\)\]])/gi;
 
+const BYTES_IN_MB = 1024 * 1024
+
+export const formatFileSize = (bytes: number): string => {
+    const sizeInMb = bytes / BYTES_IN_MB
+    return `${sizeInMb.toFixed(2)} MB`
+}
+
 export const formatMessageContent = (text: string): ReactNode[] => {
     const parts = text.split(PAGE_REFERENCE_SPLITTER);
 
