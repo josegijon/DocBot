@@ -130,7 +130,14 @@ export const App = () => {
         onRemoveDocument={(doc_id) => { setDocToDelete(doc_id); setIsHistoryOpen(false) }}
       />
 
-      {docToDelete && <ConfirmModal onConfirm={() => { handleRemoveDocument(docToDelete!); setDocToDelete(null) }} onCancel={() => setDocToDelete(null)} />}
+      {docToDelete && (
+        <ConfirmModal
+          title='¿Eliminar este documento?'
+          description='Esta acción eliminará el documento y todo su historial de conversación. No se puede deshacer. ¿Quieres continuar?'
+          onConfirm={() => { handleRemoveDocument(docToDelete!); setDocToDelete(null) }}
+          onCancel={() => setDocToDelete(null)}
+        />
+      )}
 
       {/* Contenedor */}
       <div className='flex flex-1 mt-16.25 overflow-hidden pb-16 lg:pb-0'>
