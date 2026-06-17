@@ -24,11 +24,10 @@ export const ConfirmModal = ({
 
     return (
         <>
-            <button
+            <div
                 className="fixed inset-0 z-51 modal-backdrop backdrop-blur-sm bg-black/6 cursor-default"
+                aria-hidden="true"
                 onClick={onCancel}
-                aria-label="Cerrar diálogo de confirmación"
-                tabIndex={-1}
             />
 
             <div className="fixed inset-0 z-51 flex items-center justify-center p-4 pointer-events-none">
