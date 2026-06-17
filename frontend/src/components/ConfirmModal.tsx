@@ -28,14 +28,14 @@ export const ConfirmModal = ({
                 </div>
                 <div className="flex items-center justify-end gap-3">
                     <button
-                        id="cancel-upload"
+                        data-testid="confirm-modal-cancel"
                         onClick={onCancel}
                         className="px-4 py-2 rounded-lg font-jetbrains text-label-md font-medium text-on-surface-variant hover:bg-surface-variant transition-colors cursor-pointer"
                     >
                         {cancelText}
                     </button>
                     <button
-                        id="confirm-upload"
+                        data-testid="confirm-modal-confirm"
                         onClick={onConfirm}
                         className="px-4 py-2 rounded-lg bg-error text-on-error font-jetbrains text-label-md font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer"
                     >
