@@ -26,11 +26,10 @@ export const RecentDocuments = ({ documents, active_doc_id, onSelectDocument, on
     return (
         <>
             {isOpen && (
-                <button
+                <div
                     className="fixed inset-0 bg-black/40 z-51 backdrop-blur-[2px] transition-opacity"
                     onClick={onClose}
-                    aria-label="Cerrar panel de documentos recientes"
-                    tabIndex={-1}
+                    aria-hidden="true"
                 />
             )}
 

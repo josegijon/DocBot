@@ -79,7 +79,7 @@
 }
 
 .text-headline-lg {
-  @apply text-[32px] leading-10 tracking-[-0.02em] font-semibold
+  @apply text-[2rem] leading-10 tracking-[-0.02em] font-semibold
 }
 
 .text-headline-md {
@@ -95,7 +95,7 @@
 }
 
 .text-body-lg {
-  @apply text-[16px] leading-6 font-normal
+  @apply text-base leading-6 font-normal
 }
 
 .text-body-md {
