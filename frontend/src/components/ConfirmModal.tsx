@@ -52,14 +52,14 @@ export const ConfirmModal = ({
                         <button
                             data-testid="confirm-modal-cancel"
                             onClick={onCancel}
-                            className="px-4 py-2 rounded-lg font-jetbrains text-label-md font-medium text-on-surface-variant hover:bg-surface-variant transition-colors cursor-pointer"
+                            className="px-4 py-2 rounded-lg font-jetbrains text-label-md font-medium text-on-surface-variant hover:bg-surface-variant transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-high"
                         >
                             {cancelText}
                         </button>
                         <button
                             data-testid="confirm-modal-confirm"
                             onClick={onConfirm}
-                            className="px-4 py-2 rounded-lg bg-error text-on-error font-jetbrains text-label-md font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+                            className="px-4 py-2 rounded-lg bg-error text-on-error font-jetbrains text-label-md font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-high"
                         >
                             {confirmText}
                         </button>
