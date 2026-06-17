@@ -116,7 +116,10 @@ export const App = () => {
 
   return (
     <div className='flex flex-col h-screen bg-surface'>
-      <Header onOpenHistory={() => setIsHistoryOpen(true)} />
+      <Header
+        onOpenHistory={() => setIsHistoryOpen(true)}
+        isHistoryOpen={isHistoryOpen}
+      />
 
       <RecentDocuments
         documents={documents}

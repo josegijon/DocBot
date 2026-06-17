@@ -3,9 +3,10 @@ import { History } from "lucide-react"
 
 interface HeaderProps {
     onOpenHistory: () => void
+    isHistoryOpen: boolean
 }
 
-export const Header = ({ onOpenHistory }: HeaderProps) => {
+export const Header = ({ onOpenHistory, isHistoryOpen }: HeaderProps) => {
     return (
         <header className="fixed top-0 w-full bg-surface border-b border-outline-variant flex items-center justify-between p-3 z-30">
             <div className="w-10"></div>
@@ -24,8 +25,10 @@ export const Header = ({ onOpenHistory }: HeaderProps) => {
             <button
                 onClick={onOpenHistory}
                 aria-label="Abrir historial de documentos"
-                className="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-lg transition-colors cursor-pointer"
+                aria-expanded={isHistoryOpen}
+                aria-controls="recent-documents-panel"
                 title="Historial de documentos"
+                className="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-lg transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
                 <History size={20} aria-hidden="true" />
             </button>
