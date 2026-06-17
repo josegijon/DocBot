@@ -1,5 +1,5 @@
-import docbotLogo from "../assets/img/docbot-sin-bg.png"
 import { History } from "lucide-react"
+import docbotLogo from "../assets/img/docbot-sin-bg.png"
 
 interface HeaderProps {
     onOpenHistory: () => void
