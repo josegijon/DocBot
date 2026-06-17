@@ -36,6 +36,7 @@ export const RecentDocuments = ({ documents, active_doc_id, onSelectDocument, on
 
             <section
                 ref={containerRef}
+                id="recent-documents-panel"
                 className={`fixed top-0 right-0 h-full z-52 w-72 shrink-0 bg-surface border-l border-outline-variant flex flex-col transition-transform duration-300 ease-in-out ${sectionClass}`}
                 role="dialog"
                 aria-modal="true"
