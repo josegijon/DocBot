@@ -14,10 +14,14 @@ export const UploadZone = ({ onUploadSuccess }: UploadZoneProps) => {
     const handleFile = async (file: File) => {
         if (isUploading) return
 
-        const uploadedDocument = await uploadFile(file)
-        if (!uploadedDocument) return
-
         setSelectedFile(file)
+
+        const uploadedDocument = await uploadFile(file)
+        if (!uploadedDocument) {
+            setSelectedFile(null)
+            return
+        }
+
         onUploadSuccess(uploadedDocument.doc_id, uploadedDocument.filename, file.size)
     }
 
@@ -45,8 +49,8 @@ export const UploadZone = ({ onUploadSuccess }: UploadZoneProps) => {
         <>
             <div
                 className={`group mt-6 border-dashed border-2 border-outline-variant transition-all duration-300 rounded-lg p-12 flex flex-col items-center justify-center gap-4 bg-surface-container relative ${isUploading
-                        ? "opacity-60 cursor-not-allowed"
-                        : "hover:border-primary cursor-pointer"
+                    ? "opacity-60 cursor-not-allowed"
+                    : "hover:border-primary cursor-pointer"
                     }`}
                 aria-busy={isUploading}
                 onClick={handleZoneClick}
@@ -63,9 +67,12 @@ export const UploadZone = ({ onUploadSuccess }: UploadZoneProps) => {
 
                 <div className="text-center flex flex-col gap-2">
                     {isUploading ? (
-                        <p className="font-geist text-headline-md text-on-surface">
-                            Subiendo documento...
-                        </p>
+                        <>
+                            <p className="font-geist text-headline-md text-on-surface">
+                                Subiendo documento...
+                            </p>
+                            <p className="font-jetbrains text-code-sm text-on-surface">{selectedFile?.name}</p>
+                        </>
                     ) : (
                         <>
                             <p className="font-geist text-headline-md text-on-surface">
@@ -88,7 +95,6 @@ export const UploadZone = ({ onUploadSuccess }: UploadZoneProps) => {
                 />
             </div>
 
-            {selectedFile && <p>{selectedFile?.name}</p>}
         </>
     )
 }
