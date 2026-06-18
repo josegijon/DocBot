@@ -1,8 +1,6 @@
 import { Upload } from "lucide-react"
 import { useRef, useState } from "react"
-import { toast } from "sonner";
-import type { ApiErrorResponse } from "../types/api.types";
-import type { UploadResponse } from "../types/document.types";
+import { useDocumentUpload } from "../hooks/useDocumentUpload";
 
 interface UploadZoneProps {
     onUploadSuccess: (docId: string, filename: string, fileSizeBytes: number) => void;
@@ -11,29 +9,14 @@ interface UploadZoneProps {
 export const UploadZone = ({ onUploadSuccess }: UploadZoneProps) => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const inputRef = useRef<HTMLInputElement>(null)
+    const { uploadFile } = useDocumentUpload()
 
     const handleFile = async (file: File) => {
-        const formData = new FormData()
-        formData.append("uploaded_file", file)
+        const uploadedDocument = await uploadFile(file)
+        if (!uploadedDocument) return
 
-        try {
-            const response = await fetch("/api/documents/upload", {
-                method: "POST",
-                body: formData,
-            })
-
-            if (!response.ok) {
-                const errorData: ApiErrorResponse = await response.json()
-                toast.error(errorData.message)
-                return
-            }
-
-            const data: UploadResponse = await response.json()
-            setSelectedFile(file)
-            onUploadSuccess(data.doc_id, data.filename, file.size)
-        } catch {
-            toast.error("No se pudo conectar con el servidor")
-        }
+        setSelectedFile(file)
+        onUploadSuccess(uploadedDocument.doc_id, uploadedDocument.filename, file.size)
     }
 
     return (
