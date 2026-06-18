@@ -1,6 +1,8 @@
 import { Upload } from "lucide-react"
 import { useRef, useState } from "react"
 import { toast } from "sonner";
+import type { ApiErrorResponse } from "../types/api.types";
+import type { UploadResponse } from "../types/document.types";
 
 interface UploadZoneProps {
     onUploadSuccess: (docId: string, filename: string, fileSizeBytes: number) => void;
@@ -11,7 +13,6 @@ export const UploadZone = ({ onUploadSuccess }: UploadZoneProps) => {
     const inputRef = useRef<HTMLInputElement>(null)
 
     const handleFile = async (file: File) => {
-
         const formData = new FormData()
         formData.append("uploaded_file", file)
 
@@ -22,12 +23,12 @@ export const UploadZone = ({ onUploadSuccess }: UploadZoneProps) => {
             })
 
             if (!response.ok) {
-                const data = await response.json()
-                toast.error(data.message)
+                const errorData: ApiErrorResponse = await response.json()
+                toast.error(errorData.message)
                 return
             }
 
-            const data = await response.json()
+            const data: UploadResponse = await response.json()
             setSelectedFile(file)
             onUploadSuccess(data.doc_id, data.filename, file.size)
         } catch {
