@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
+import { UPLOAD_DOCUMENT_ENDPOINT, UPLOAD_FORM_DATA_KEY } from "../utils/apiRoutes"
 import type { UploadResponse } from "../types/document.types"
 import type { ApiErrorResponse } from "../types/api.types"
 
@@ -20,13 +21,13 @@ export const useDocumentUpload = (): UseDocumentUploadReturn => {
 
     const uploadFile = async (file: File): Promise<UploadResponse | null> => {
         const formData = new FormData()
-        formData.append("uploaded_file", file)
+        formData.append(UPLOAD_FORM_DATA_KEY, file)
 
         abortControllerRef.current = new AbortController()
         setIsUploading(true)
 
         try {
-            const response = await fetch("/api/documents/upload", {
+            const response = await fetch(UPLOAD_DOCUMENT_ENDPOINT, {
                 method: "POST",
                 body: formData,
                 signal: abortControllerRef.current.signal,
