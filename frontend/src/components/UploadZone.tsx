@@ -1,6 +1,12 @@
-import { Upload } from "lucide-react"
+import { Loader2, Upload } from "lucide-react"
 import { useRef, useState } from "react"
-import { toast } from "sonner";
+import { useDocumentUpload } from "../hooks/useDocumentUpload";
+
+const KEY_ENTER = "Enter"
+const KEY_SPACE = " "
+
+const UPLOAD_ZONE_LABEL = "Subir documento PDF. Arrastra un archivo o pulsa Enter para seleccionar uno. Máximo 50MB."
+
 
 interface UploadZoneProps {
     onUploadSuccess: (docId: string, filename: string, fileSizeBytes: number) => void;
@@ -9,71 +15,103 @@ interface UploadZoneProps {
 export const UploadZone = ({ onUploadSuccess }: UploadZoneProps) => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const inputRef = useRef<HTMLInputElement>(null)
+    const { uploadFile, isUploading } = useDocumentUpload()
 
     const handleFile = async (file: File) => {
+        if (isUploading) return
 
-        const formData = new FormData()
-        formData.append("uploaded_file", file)
+        setSelectedFile(file)
 
-        try {
-            const response = await fetch("/api/documents/upload", {
-                method: "POST",
-                body: formData,
-            })
-
-            if (!response.ok) {
-                const data = await response.json()
-                toast.error(data.message)
-                return
-            }
-
-            const data = await response.json()
-            setSelectedFile(file)
-            onUploadSuccess(data.doc_id, data.filename, file.size)
-        } catch {
-            toast.error("No se pudo conectar con el servidor")
+        const uploadedDocument = await uploadFile(file)
+        if (!uploadedDocument) {
+            setSelectedFile(null)
+            return
         }
+
+        onUploadSuccess(uploadedDocument.doc_id, uploadedDocument.filename, file.size)
+    }
+
+    const handleZoneClick = () => {
+        if (isUploading) return
+        inputRef.current?.click()
+    }
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault()
+    }
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault()
+        if (isUploading) return
+        handleFile(e.dataTransfer.files[0])
+    }
+
+    const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) handleFile(file)
+    }
+
+    const handleZoneKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key !== KEY_ENTER && e.key !== KEY_SPACE) return
+        e.preventDefault()
+        handleZoneClick()
     }
 
     return (
         <>
             <div
-                className="group mt-6 border-dashed border-2 border-outline-variant hover:border-primary transition-all duration-300 rounded-lg p-12 flex flex-col items-center justify-center gap-4 cursor-pointer bg-surface-container relative"
-                onClick={() => inputRef.current?.click()}
-                onDragOver={(e) => e.preventDefault()}
-                onDragEnter={(e) => e.preventDefault()}
-                onDrop={(e) => {
-                    e.preventDefault()
-                    handleFile(e.dataTransfer.files[0])
-                }}
+                role="button"
+                tabIndex={isUploading ? -1 : 0}
+                aria-label={UPLOAD_ZONE_LABEL}
+                aria-disabled={isUploading}
+                aria-busy={isUploading}
+                onKeyDown={handleZoneKeyDown}
+                className={`group mt-6 border-dashed border-2 border-outline-variant transition-all duration-300 rounded-lg p-12 flex flex-col items-center justify-center gap-4 bg-surface-container relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${isUploading
+                    ? "opacity-60 cursor-not-allowed"
+                    : "hover:border-primary cursor-pointer"
+                    }`}
+                onClick={handleZoneClick}
+                onDragOver={handleDragOver}
+                onDragEnter={handleDragOver}
+                onDrop={handleDrop}
             >
                 <div className="w-16 h-16 rounded-full bg-surface-container-high border border-outline-variant flex items-center justify-center group-hover:scale-110 group-hover:bg-primary/10 transition-transform">
-                    <Upload
-                        color="#c0c1ff"
-                        size={32}
-                    />
+                    {isUploading
+                        ? <Loader2 className="text-primary animate-spin" size={32} />
+                        : <Upload className="text-primary" size={32} />
+                    }
                 </div>
+
                 <div className="text-center flex flex-col gap-2">
-                    <p className="font-geist text-headline-md text-on-surface">
-                        Arrastra aquí tu PDF o <span className="text-primary underline cursor-pointer">Click para navegar</span>
-                    </p>
-                    <p className="font-jetbrains text-label-md text-on-surface-variant">
-                        (Máx 50MB)
-                    </p>
+                    {isUploading ? (
+                        <>
+                            <p className="font-geist text-headline-md text-on-surface">
+                                Subiendo documento...
+                            </p>
+                            <p className="font-jetbrains text-code-sm text-on-surface">{selectedFile?.name}</p>
+                        </>
+                    ) : (
+                        <>
+                            <p className="font-geist text-headline-md text-on-surface">
+                                Arrastra aquí tu PDF o <span className="text-primary underline cursor-pointer">Click para navegar</span>
+                            </p>
+                            <p className="font-jetbrains text-label-md text-on-surface-variant">
+                                (Máx 50MB)
+                            </p>
+                        </>
+                    )}
                 </div>
+
                 <input
                     ref={inputRef}
                     accept=".pdf"
                     type="file"
                     className="hidden"
-                    onChange={(e) => {
-                        const file = e.target.files?.[0]
-                        if (file) handleFile(file)
-                    }}
+                    disabled={isUploading}
+                    onChange={handleFileInputChange}
                 />
             </div>
 
-            {selectedFile && <p>{selectedFile?.name}</p>}
         </>
     )
 }
