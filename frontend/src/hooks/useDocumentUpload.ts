@@ -2,12 +2,14 @@ import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { UPLOAD_DOCUMENT_ENDPOINT, UPLOAD_FORM_DATA_KEY } from "../utils/apiRoutes"
 import type { UploadResponse } from "../types/document.types"
-import type { ApiErrorResponse } from "../types/api.types"
+import { isApiErrorResponse } from "../types/api.types"
 
 interface UseDocumentUploadReturn {
     uploadFile: (file: File) => Promise<UploadResponse | null>
     isUploading: boolean
 }
+
+const GENERIC_UPLOAD_ERROR_MESSAGE = "No se pudo procesar el archivo. Inténtalo de nuevo."
 
 export const useDocumentUpload = (): UseDocumentUploadReturn => {
     const [isUploading, setIsUploading] = useState<boolean>(false)
@@ -34,8 +36,12 @@ export const useDocumentUpload = (): UseDocumentUploadReturn => {
             })
 
             if (!response.ok) {
-                const errorData: ApiErrorResponse = await response.json()
-                toast.error(errorData.message)
+                const errorPayload: unknown = await response.json()
+                const errorMessage = isApiErrorResponse(errorPayload)
+                    ? errorPayload.message
+                    : GENERIC_UPLOAD_ERROR_MESSAGE
+
+                toast.error(errorMessage)
                 return null
             }
 
