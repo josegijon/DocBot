@@ -3,7 +3,7 @@ import { useRef, useState } from "react"
 import { toast } from "sonner";
 
 interface UploadZoneProps {
-    onUploadSuccess: (docId: string, filename: string, filesize: number) => void;
+    onUploadSuccess: (docId: string, filename: string, fileSizeBytes: number) => void;
 }
 
 export const UploadZone = ({ onUploadSuccess }: UploadZoneProps) => {
@@ -28,9 +28,8 @@ export const UploadZone = ({ onUploadSuccess }: UploadZoneProps) => {
             }
 
             const data = await response.json()
-            const fileSize = +(file.size / (1024 * 1024)).toFixed(2)
             setSelectedFile(file)
-            onUploadSuccess(data.doc_id, data.filename, fileSize)
+            onUploadSuccess(data.doc_id, data.filename, file.size)
         } catch {
             toast.error("No se pudo conectar con el servidor")
         }
