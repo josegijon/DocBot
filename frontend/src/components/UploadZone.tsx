@@ -2,6 +2,12 @@ import { Loader2, Upload } from "lucide-react"
 import { useRef, useState } from "react"
 import { useDocumentUpload } from "../hooks/useDocumentUpload";
 
+const KEY_ENTER = "Enter"
+const KEY_SPACE = " "
+
+const UPLOAD_ZONE_LABEL = "Subir documento PDF. Arrastra un archivo o pulsa Enter para seleccionar uno. Máximo 50MB."
+
+
 interface UploadZoneProps {
     onUploadSuccess: (docId: string, filename: string, fileSizeBytes: number) => void;
 }
@@ -45,14 +51,25 @@ export const UploadZone = ({ onUploadSuccess }: UploadZoneProps) => {
         if (file) handleFile(file)
     }
 
+    const handleZoneKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key !== KEY_ENTER && e.key !== KEY_SPACE) return
+        e.preventDefault()
+        handleZoneClick()
+    }
+
     return (
         <>
             <div
-                className={`group mt-6 border-dashed border-2 border-outline-variant transition-all duration-300 rounded-lg p-12 flex flex-col items-center justify-center gap-4 bg-surface-container relative ${isUploading
+                role="button"
+                tabIndex={isUploading ? -1 : 0}
+                aria-label={UPLOAD_ZONE_LABEL}
+                aria-disabled={isUploading}
+                aria-busy={isUploading}
+                onKeyDown={handleZoneKeyDown}
+                className={`group mt-6 border-dashed border-2 border-outline-variant transition-all duration-300 rounded-lg p-12 flex flex-col items-center justify-center gap-4 bg-surface-container relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${isUploading
                     ? "opacity-60 cursor-not-allowed"
                     : "hover:border-primary cursor-pointer"
                     }`}
-                aria-busy={isUploading}
                 onClick={handleZoneClick}
                 onDragOver={handleDragOver}
                 onDragEnter={handleDragOver}
