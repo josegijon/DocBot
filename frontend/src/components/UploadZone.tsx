@@ -21,6 +21,26 @@ export const UploadZone = ({ onUploadSuccess }: UploadZoneProps) => {
         onUploadSuccess(uploadedDocument.doc_id, uploadedDocument.filename, file.size)
     }
 
+    const handleZoneClick = () => {
+        if (isUploading) return
+        inputRef.current?.click()
+    }
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault()
+    }
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault()
+        if (isUploading) return
+        handleFile(e.dataTransfer.files[0])
+    }
+
+    const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) handleFile(file)
+    }
+
     return (
         <>
             <div
@@ -29,17 +49,10 @@ export const UploadZone = ({ onUploadSuccess }: UploadZoneProps) => {
                     : "hover:border-primary cursor-pointer"
                     }`}
                 aria-busy={isUploading}
-                onClick={() => {
-                    if (isUploading) return
-                    inputRef.current?.click()
-                }}
-                onDragOver={(e) => e.preventDefault()}
-                onDragEnter={(e) => e.preventDefault()}
-                onDrop={(e) => {
-                    e.preventDefault()
-                    if (isUploading) return
-                    handleFile(e.dataTransfer.files[0])
-                }}
+                onClick={handleZoneClick}
+                onDragOver={handleDragOver}
+                onDragEnter={handleDragOver}
+                onDrop={handleDrop}
             >
                 <div className="w-16 h-16 rounded-full bg-surface-container-high border border-outline-variant flex items-center justify-center group-hover:scale-110 group-hover:bg-primary/10 transition-transform">
                     <Upload
@@ -61,10 +74,7 @@ export const UploadZone = ({ onUploadSuccess }: UploadZoneProps) => {
                     type="file"
                     className="hidden"
                     disabled={isUploading}
-                    onChange={(e) => {
-                        const file = e.target.files?.[0]
-                        if (file) handleFile(file)
-                    }}
+                    onChange={handleFileInputChange}
                 />
             </div>
 
