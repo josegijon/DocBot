@@ -42,6 +42,9 @@ export const useDocumentUpload = (): UseDocumentUploadReturn => {
             return await response.json() as UploadResponse
         } catch (error) {
             if (error instanceof Error && error.name === "AbortError") return null
+
+            console.error("[useDocumentUpload] Fallo al subir el documento:", error)
+
             toast.error("No se pudo conectar con el servidor")
             return null
         } finally {
