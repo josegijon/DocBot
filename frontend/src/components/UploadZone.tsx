@@ -9,9 +9,11 @@ interface UploadZoneProps {
 export const UploadZone = ({ onUploadSuccess }: UploadZoneProps) => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const inputRef = useRef<HTMLInputElement>(null)
-    const { uploadFile } = useDocumentUpload()
+    const { uploadFile, isUploading } = useDocumentUpload()
 
     const handleFile = async (file: File) => {
+        if (isUploading) return
+
         const uploadedDocument = await uploadFile(file)
         if (!uploadedDocument) return
 
@@ -22,12 +24,20 @@ export const UploadZone = ({ onUploadSuccess }: UploadZoneProps) => {
     return (
         <>
             <div
-                className="group mt-6 border-dashed border-2 border-outline-variant hover:border-primary transition-all duration-300 rounded-lg p-12 flex flex-col items-center justify-center gap-4 cursor-pointer bg-surface-container relative"
-                onClick={() => inputRef.current?.click()}
+                className={`group mt-6 border-dashed border-2 border-outline-variant transition-all duration-300 rounded-lg p-12 flex flex-col items-center justify-center gap-4 bg-surface-container relative ${isUploading
+                        ? "opacity-60 cursor-not-allowed"
+                        : "hover:border-primary cursor-pointer"
+                    }`}
+                aria-busy={isUploading}
+                onClick={() => {
+                    if (isUploading) return
+                    inputRef.current?.click()
+                }}
                 onDragOver={(e) => e.preventDefault()}
                 onDragEnter={(e) => e.preventDefault()}
                 onDrop={(e) => {
                     e.preventDefault()
+                    if (isUploading) return
                     handleFile(e.dataTransfer.files[0])
                 }}
             >
@@ -50,6 +60,7 @@ export const UploadZone = ({ onUploadSuccess }: UploadZoneProps) => {
                     accept=".pdf"
                     type="file"
                     className="hidden"
+                    disabled={isUploading}
                     onChange={(e) => {
                         const file = e.target.files?.[0]
                         if (file) handleFile(file)
