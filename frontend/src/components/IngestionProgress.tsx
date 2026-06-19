@@ -34,7 +34,7 @@ export const IngestionProgress = ({ progress, status, filename }: IngestionProgr
             {/* Progress bar */}
             <div className="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden border border-outline-variant">
                 <div
-                    className="h-full bg-primary rounded-full transition-all duration-1000 ease-out relative shadow-[0_0_12px_rgba(192,193,255,0.4)]"
+                    className="h-full bg-primary rounded-full transition-all duration-1000 ease-out relative shadow-glow-primary"
                     style={{ width: `${progress}%` }}
                 >
                     <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.2)_50%,transparent_100%)] animate-[shimmer_2s_infinite]"></div>
