@@ -1,5 +1,6 @@
 import { Loader2, Upload } from "lucide-react"
 import { useRef, useState } from "react"
+import { toast } from "sonner";
 import { useDocumentUpload } from "../hooks/useDocumentUpload";
 
 const KEY_ENTER = "Enter"
@@ -22,13 +23,16 @@ export const UploadZone = ({ onUploadSuccess }: UploadZoneProps) => {
 
         setSelectedFile(file)
 
-        const uploadedDocument = await uploadFile(file)
-        if (!uploadedDocument) {
+        const { document, errorMessage } = await uploadFile(file)
+
+        if (errorMessage) toast.error(errorMessage)
+
+        if (!document) {
             setSelectedFile(null)
             return
         }
 
-        onUploadSuccess(uploadedDocument.doc_id, uploadedDocument.filename, file.size)
+        onUploadSuccess(document.doc_id, document.filename, file.size)
     }
 
     const handleZoneClick = () => {

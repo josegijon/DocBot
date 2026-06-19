@@ -1,15 +1,20 @@
 import { useEffect, useRef, useState } from "react"
-import { toast } from "sonner"
 import { UPLOAD_DOCUMENT_ENDPOINT, UPLOAD_FORM_DATA_KEY } from "../utils/apiRoutes"
 import type { UploadResponse } from "../types/document.types"
 import { isApiErrorResponse } from "../types/api.types"
 
-interface UseDocumentUploadReturn {
-    uploadFile: (file: File) => Promise<UploadResponse | null>
-    isUploading: boolean
+const GENERIC_UPLOAD_ERROR_MESSAGE = "No se pudo procesar el archivo. Inténtalo de nuevo."
+const NETWORK_ERROR_MESSAGE = "No se pudo conectar con el servidor"
+
+export interface UploadOutcome {
+    document: UploadResponse | null
+    errorMessage: string | null
 }
 
-const GENERIC_UPLOAD_ERROR_MESSAGE = "No se pudo procesar el archivo. Inténtalo de nuevo."
+interface UseDocumentUploadReturn {
+    uploadFile: (file: File) => Promise<UploadOutcome>
+    isUploading: boolean
+}
 
 export const useDocumentUpload = (): UseDocumentUploadReturn => {
     const [isUploading, setIsUploading] = useState<boolean>(false)
@@ -21,7 +26,7 @@ export const useDocumentUpload = (): UseDocumentUploadReturn => {
         }
     }, [])
 
-    const uploadFile = async (file: File): Promise<UploadResponse | null> => {
+    const uploadFile = async (file: File): Promise<UploadOutcome> => {
         const formData = new FormData()
         formData.append(UPLOAD_FORM_DATA_KEY, file)
 
@@ -41,18 +46,18 @@ export const useDocumentUpload = (): UseDocumentUploadReturn => {
                     ? errorPayload.message
                     : GENERIC_UPLOAD_ERROR_MESSAGE
 
-                toast.error(errorMessage)
-                return null
+                return { document: null, errorMessage }
             }
 
-            return await response.json() as UploadResponse
+            const document = await response.json() as UploadResponse
+            return { document, errorMessage: null }
         } catch (error) {
-            if (error instanceof Error && error.name === "AbortError") return null
+            if (error instanceof Error && error.name === "AbortError") {
+                return { document: null, errorMessage: null }
+            }
 
             console.error("[useDocumentUpload] Fallo al subir el documento:", error)
-
-            toast.error("No se pudo conectar con el servidor")
-            return null
+            return { document: null, errorMessage: NETWORK_ERROR_MESSAGE }
         } finally {
             setIsUploading(false)
         }
