@@ -16,6 +16,7 @@ import { ConfirmModal } from './components/ConfirmModal';
 import { FileText, MessagesSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import { getChatStorageKey, getSummaryStorageKey } from './utils/storageKeys';
+import { NETWORK_ERROR_MESSAGE } from './utils/errorMessages';
 
 const UNNAMED_DOCUMENT_FALLBACK = "Documento sin nombre"
 
@@ -71,7 +72,7 @@ export const App = () => {
       removeDocument(doc_id)
       toast.success("Documento eliminado")
     } catch {
-      toast.error("No se pudo conectar con el servidor")
+      toast.error(NETWORK_ERROR_MESSAGE)
     }
   }
 
@@ -95,7 +96,7 @@ export const App = () => {
       const response = await fetch(`/api/documents/${selectedDocId}/exists`)
 
       if (!response.ok) {
-        toast.error("No se pudo conectar con el servidor")
+        toast.error(NETWORK_ERROR_MESSAGE)
         return
       }
 
@@ -114,7 +115,7 @@ export const App = () => {
       setFilename(doc.filename)
       setIsHistoryOpen(false)
     } catch {
-      toast.error("No se pudo conectar con el servidor")
+      toast.error(NETWORK_ERROR_MESSAGE)
     }
   }
 

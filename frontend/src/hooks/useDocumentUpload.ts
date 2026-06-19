@@ -2,9 +2,9 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { UPLOAD_DOCUMENT_ENDPOINT, UPLOAD_FORM_DATA_KEY } from "../utils/apiRoutes"
 import type { UploadResponse } from "../types/document.types"
 import { isApiErrorResponse } from "../types/api.types"
+import { NETWORK_ERROR_MESSAGE } from "../utils/errorMessages"
 
 const GENERIC_UPLOAD_ERROR_MESSAGE = "No se pudo procesar el archivo. Inténtalo de nuevo."
-const NETWORK_ERROR_MESSAGE = "No se pudo conectar con el servidor"
 
 export interface UploadOutcome {
     document: UploadResponse | null
