@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import type { Message } from "../types/chat.types"
 import { getChatStorageKey } from "../utils/storageKeys"
+import { NETWORK_ERROR_MESSAGE } from "../utils/errorMessages"
 
 const SSE_EVENT_STREAM_ERROR = "event: stream_error"
 const SSE_DATA_PREFIX = "data:"
@@ -149,7 +150,7 @@ export const useChat = (docId: string | null, sessionId: string) => {
             setIsLoading(false)
             setMessages(prev => {
                 const updated = [...prev];
-                updated[updated.length - 1] = { role: "assistant", content: "No se pudo conectar con el servidor. Por favor, inténtalo de nuevo." };
+                updated[updated.length - 1] = { role: "assistant", content: NETWORK_ERROR_MESSAGE };
                 return updated;
             })
         }

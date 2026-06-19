@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { getSummaryStorageKey } from "../utils/storageKeys"
 import type { IngestionStatus } from "../types/ingestionStatus.types";
+import { NETWORK_ERROR_MESSAGE } from "../utils/errorMessages";
 
 const SSE_EVENT_STREAM_ERROR = "stream_error"
 
@@ -65,7 +66,7 @@ export const useSummary = (docId: string | null, status: IngestionStatus): UseSu
 
         source.onerror = (event) => {
             console.error("EventSource error en useSummary:", event)
-            setError("No se pudo conectar con el servidor. Por favor, inténtalo de nuevo.")
+            setError(NETWORK_ERROR_MESSAGE)
             source.close()
         }
 

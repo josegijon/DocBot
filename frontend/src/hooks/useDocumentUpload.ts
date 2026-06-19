@@ -1,11 +1,18 @@
-import { useEffect, useRef, useState } from "react"
-import { toast } from "sonner"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { UPLOAD_DOCUMENT_ENDPOINT, UPLOAD_FORM_DATA_KEY } from "../utils/apiRoutes"
 import type { UploadResponse } from "../types/document.types"
-import type { ApiErrorResponse } from "../types/api.types"
+import { isApiErrorResponse } from "../types/api.types"
+import { NETWORK_ERROR_MESSAGE } from "../utils/errorMessages"
+
+const GENERIC_UPLOAD_ERROR_MESSAGE = "No se pudo procesar el archivo. Inténtalo de nuevo."
+
+export interface UploadOutcome {
+    document: UploadResponse | null
+    errorMessage: string | null
+}
 
 interface UseDocumentUploadReturn {
-    uploadFile: (file: File) => Promise<UploadResponse | null>
+    uploadFile: (file: File) => Promise<UploadOutcome>
     isUploading: boolean
 }
 
@@ -19,10 +26,11 @@ export const useDocumentUpload = (): UseDocumentUploadReturn => {
         }
     }, [])
 
-    const uploadFile = async (file: File): Promise<UploadResponse | null> => {
+    const uploadFile = useCallback(async (file: File): Promise<UploadOutcome> => {
         const formData = new FormData()
         formData.append(UPLOAD_FORM_DATA_KEY, file)
 
+        abortControllerRef.current?.abort()
         abortControllerRef.current = new AbortController()
         setIsUploading(true)
 
@@ -34,23 +42,27 @@ export const useDocumentUpload = (): UseDocumentUploadReturn => {
             })
 
             if (!response.ok) {
-                const errorData: ApiErrorResponse = await response.json()
-                toast.error(errorData.message)
-                return null
+                const errorPayload: unknown = await response.json()
+                const errorMessage = isApiErrorResponse(errorPayload)
+                    ? errorPayload.message
+                    : GENERIC_UPLOAD_ERROR_MESSAGE
+
+                return { document: null, errorMessage }
             }
 
-            return await response.json() as UploadResponse
+            const document = await response.json() as UploadResponse
+            return { document, errorMessage: null }
         } catch (error) {
-            if (error instanceof Error && error.name === "AbortError") return null
+            if (error instanceof Error && error.name === "AbortError") {
+                return { document: null, errorMessage: null }
+            }
 
             console.error("[useDocumentUpload] Fallo al subir el documento:", error)
-
-            toast.error("No se pudo conectar con el servidor")
-            return null
+            return { document: null, errorMessage: NETWORK_ERROR_MESSAGE }
         } finally {
             setIsUploading(false)
         }
-    }
+    }, [])
 
     return { uploadFile, isUploading }
 }
