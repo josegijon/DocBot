@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { UPLOAD_DOCUMENT_ENDPOINT, UPLOAD_FORM_DATA_KEY } from "../utils/apiRoutes"
 import type { UploadResponse } from "../types/document.types"
 import { isApiErrorResponse } from "../types/api.types"
@@ -26,10 +26,11 @@ export const useDocumentUpload = (): UseDocumentUploadReturn => {
         }
     }, [])
 
-    const uploadFile = async (file: File): Promise<UploadOutcome> => {
+    const uploadFile = useCallback(async (file: File): Promise<UploadOutcome> => {
         const formData = new FormData()
         formData.append(UPLOAD_FORM_DATA_KEY, file)
 
+        abortControllerRef.current?.abort()
         abortControllerRef.current = new AbortController()
         setIsUploading(true)
 
@@ -61,7 +62,7 @@ export const useDocumentUpload = (): UseDocumentUploadReturn => {
         } finally {
             setIsUploading(false)
         }
-    }
+    }, [])
 
     return { uploadFile, isUploading }
 }
