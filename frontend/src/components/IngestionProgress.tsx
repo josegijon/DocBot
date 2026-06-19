@@ -1,12 +1,13 @@
+import type { IngestionStatus } from "../types/ingestionStatus.types"
 
 interface IngestionProgressProps {
     progress: number
-    status: "processing" | "ready" | "failed"
+    status: IngestionStatus
     filename: string | null
 }
 
 export const IngestionProgress = ({ progress, status, filename }: IngestionProgressProps) => {
-    const getStatusMessage = () => {
+    const getStatusMessage = (): string => {
         if (status === "ready") return "¡Listo!"
         if (status === "failed") return "Error en el procesamiento"
         if (progress < 50) return "Extrayendo texto..."
