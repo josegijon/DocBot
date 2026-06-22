@@ -2,13 +2,7 @@
 import { BookOpenText } from "lucide-react"
 import { SourceCard } from "./SourceCard"
 import { formatMessageContent } from "../utils/format"
-import type { Source } from "../types/chat.types"
-
-interface Message {
-    role: "user" | "assistant"
-    content: string
-    sources?: Source[]
-}
+import type { Message } from "../types/chat.types"
 
 interface MessageBubbleProps {
     message: Message
@@ -29,7 +23,7 @@ export const MessageBubble = ({ message }: MessageBubbleProps) => {
                     <div className="border-t border-outline-variant pt-3 flex flex-col gap-2 animate-in fade-in duration-700 ease-out">
                         <div className="flex items-center gap-2">
                             <BookOpenText color="#c0c1ff" size={16} />
-                            <p className="font-jetbrains text-[11px] text-on-surface-variant uppercase tracking-widest">Fuentes</p>
+                            <p className="font-jetbrains text-2xs text-on-surface-variant uppercase tracking-widest">Fuentes</p>
                         </div>
 
                         {message.sources.map((source, index) => (
