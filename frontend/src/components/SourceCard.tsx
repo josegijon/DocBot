@@ -14,7 +14,7 @@ export const SourceCard = ({ source, index }: SourceCardProps) => {
                     {index}
                 </span>
                 <div className="flex flex-col">
-                    <span className="font-geist text-[13px] font-medium text-on-surface">"{source.text}"</span>
+                    <span className="font-geist text-[13px] font-medium text-on-surface line-clamp-2">"{source.text}"</span>
                     <span className="font-jetbrains text-2xs text-on-surface-variant">Pág {source.page}</span>
                 </div>
 
