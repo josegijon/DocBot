@@ -11,11 +11,19 @@ interface MessageBubbleProps {
 export const MessageBubble = ({ message }: MessageBubbleProps) => {
     const isUser = message.role === "user"
 
-    return (
-        <div className={`flex flex-col gap-2 max-w-[90%] animate-in fade-in slide-in-from-bottom-3 duration-500 ease-out ${isUser ? "justify-end ml-auto" : "justify-start"}`}>
-            <div className={`flex flex-col gap-3 p-4 rounded-xl shadow-sm ${isUser ? "rounded-tr-none bg-message-user border-border-message-user" : "rounded-tl-none bg-message-ai border-border-message-ai"}`}>
+    const bubbleAlignmentClass = isUser ? "justify-end ml-auto" : "justify-start"
 
-                <p className={`font-geist whitespace-pre-wrap leading-relaxed ${isUser ? "text-white" : "text-on-surface"}`}>
+    const bubbleSurfaceClass = isUser
+        ? "rounded-tr-none bg-message-user border-border-message-user"
+        : "rounded-tl-none bg-message-ai border-border-message-ai"
+
+    const bubbleTextColorClass = isUser ? "text-white" : "text-on-surface"
+
+    return (
+        <div className={`flex flex-col gap-2 max-w-[90%] animate-in fade-in slide-in-from-bottom-3 duration-500 ease-out ${bubbleAlignmentClass}`}>
+            <div className={`flex flex-col gap-3 p-4 rounded-xl shadow-sm ${bubbleSurfaceClass}`}>
+
+                <p className={`font-geist whitespace-pre-wrap leading-relaxed ${bubbleTextColorClass}`}>
                     {formatMessageContent(message.content)}
                 </p>
 
