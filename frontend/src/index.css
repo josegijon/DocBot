@@ -49,6 +49,10 @@
 
   --text-headline-brand: 1.5625rem;
 
+  /* Shadows */
+  --shadow-glow-primary: 0 0 12px color-mix(in srgb, var(--color-primary) 40%, transparent);
+  /* shadow-[0_0_12px_rgba(192,193,255,0.4)] */
+
   /* Colors */
   --color-primary: #c0c1ff;
   --color-outline-variant: #464554;
