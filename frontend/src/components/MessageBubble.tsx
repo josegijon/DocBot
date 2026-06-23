@@ -10,6 +10,8 @@ interface MessageBubbleProps {
 
 export const MessageBubble = ({ message }: MessageBubbleProps) => {
     const isUser = message.role === "user"
+    const sources = message.sources
+    const shouldRenderSources = !isUser && sources && sources.length > 0
 
     const bubbleAlignmentClass = isUser ? "justify-end ml-auto" : "justify-start"
 
@@ -27,14 +29,14 @@ export const MessageBubble = ({ message }: MessageBubbleProps) => {
                     {formatMessageContent(message.content)}
                 </p>
 
-                {!isUser && message.sources && message.sources.length > 0 && (
+                {shouldRenderSources && (
                     <div className="border-t border-outline-variant pt-3 flex flex-col gap-2 animate-in fade-in duration-700 ease-out">
                         <div className="flex items-center gap-2">
-                            <BookOpenText color="#c0c1ff" size={16} />
+                            <BookOpenText className="text-primary" size={16} />
                             <p className="font-jetbrains text-2xs text-on-surface-variant uppercase tracking-widest">Fuentes</p>
                         </div>
 
-                        {message.sources.map((source, index) => (
+                        {sources.map((source, index) => (
                             <div
                                 key={index}
                                 className="animate-in fade-in slide-in-from-bottom-2 duration-500 fill-mode-both"
