@@ -38,7 +38,7 @@ export const MessageBubble = ({ message }: MessageBubbleProps) => {
 
                         {sources.map((source, index) => (
                             <div
-                                key={index}
+                                key={`${source.page}-${source.text}`}
                                 className="animate-in fade-in slide-in-from-bottom-2 duration-500 fill-mode-both"
                                 style={{ animationDelay: `${index * 150}ms` }}
                             >
