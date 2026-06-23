@@ -1,6 +1,8 @@
 import { Loader2, Send } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 
+const KEY_ENTER = "Enter"
+
 interface InputBarProps {
     onSend: (message: string) => void
     isLoading: boolean
@@ -15,6 +17,12 @@ export const InputBar = ({ onSend, isLoading, disabled }: InputBarProps) => {
         if (!input.trim() || isLoading) return
         onSend(input.trim())
         setInput("")
+    }
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key !== KEY_ENTER || e.shiftKey) return
+        e.preventDefault()
+        handleSend()
     }
 
     useEffect(() => {
@@ -35,12 +43,7 @@ export const InputBar = ({ onSend, isLoading, disabled }: InputBarProps) => {
                         disabled={isLoading || disabled}
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter" && !e.shiftKey) {
-                                e.preventDefault()
-                                handleSend()
-                            }
-                        }}
+                        onKeyDown={handleKeyDown}
                     >
                     </textarea>
                     <div className="flex items-center justify-center px-4">
