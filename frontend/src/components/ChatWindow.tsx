@@ -1,8 +1,9 @@
-import { useChat } from "../hooks/useChat"
-import { MessageBubble } from "./MessageBubble"
-import { InputBar } from "./InputBar"
-import { useEffect, useRef, useState } from "react"
-import { ChatOnboarding } from "./ChatOnboarding"
+import { useAutoScroll } from "../hooks/useAutoScroll";
+import { useChat } from "../hooks/useChat";
+
+import { ChatOnboarding } from "./ChatOnboarding";
+import { InputBar } from "./InputBar";
+import { MessageBubble } from "./MessageBubble";
 import { ScrollToBottom } from './ScrollToBottom';
 
 interface ChatWindowProps {
@@ -12,38 +13,10 @@ interface ChatWindowProps {
 }
 
 export const ChatWindow = ({ docId, sessionId, filename }: ChatWindowProps) => {
-    const [showScrollButton, setShowScrollButton] = useState(false)
-
     const { messages, isLoading, sendMessage } = useChat(docId, sessionId)
+    const { bottomRef, showScrollButton, scrollToBottom } = useAutoScroll(messages)
 
-    const bottomRef = useRef<HTMLDivElement>(null)
 
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => setShowScrollButton(!entry.isIntersecting),
-            { threshold: 0.1 }
-        )
-        if (bottomRef.current) observer.observe(bottomRef.current)
-        return () => observer.disconnect()
-    }, [])
-
-    const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
-        bottomRef.current?.scrollIntoView({ behavior })
-    }
-
-    useEffect(() => {
-        const lastMessage = messages[messages.length - 1]
-        if (!lastMessage) return
-
-        if (lastMessage.role === "user") {
-            // Si el usuario envía un mensaje, siempre baja suavemente
-            scrollToBottom("smooth")
-        } else if (!showScrollButton) {
-            // Si la IA está escribiendo y estamos abajo, seguimos el stream.
-            // Usamos "auto" (instantáneo) para evitar lagueos generados por cientos de scrolls suaves por segundo.
-            scrollToBottom("auto")
-        }
-    }, [messages, showScrollButton])
 
     return (
         <div className="flex-1 flex flex-col h-full relative">
