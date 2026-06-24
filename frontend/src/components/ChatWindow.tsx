@@ -26,14 +26,13 @@ export const ChatWindow = ({ docId, sessionId, filename }: ChatWindowProps) => {
                         <ChatOnboarding filename={filename} />
                     )}
                     {messages.map((message, index) => (
-                        <MessageBubble key={index} message={message} />
+                        <MessageBubble key={`${sessionId}-${index}`} message={message} />
                     ))}
                     <div ref={bottomRef} />
                 </div>
 
                 <div className="absolute bottom-0 left-0 right-0 h-12 bg-linear-to-t from-surface to-transparent pointer-events-none" />
 
-                {/* <ScrollToBottom onClick={scrollToBottom} isVisible={showScrollButton} /> */}
                 <ScrollToBottom onClick={() => scrollToBottom("smooth")} isVisible={showScrollButton} />
             </div>
 
