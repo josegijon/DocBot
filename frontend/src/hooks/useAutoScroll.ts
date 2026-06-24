@@ -12,6 +12,11 @@ interface UseAutoScrollReturn {
 export const useAutoScroll = (messages: Message[]): UseAutoScrollReturn => {
     const [showScrollButton, setShowScrollButton] = useState(false)
     const bottomRef = useRef<HTMLDivElement>(null)
+    const showScrollButtonRef = useRef(showScrollButton)
+
+    useEffect(() => {
+        showScrollButtonRef.current = showScrollButton
+    })
 
     const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
         bottomRef.current?.scrollIntoView({ behavior })
@@ -32,10 +37,10 @@ export const useAutoScroll = (messages: Message[]): UseAutoScrollReturn => {
 
         if (lastMessage.role === "user") {
             scrollToBottom("smooth")
-        } else if (!showScrollButton) {
+        } else if (!showScrollButtonRef.current) {
             scrollToBottom("auto")
         }
-    }, [messages, showScrollButton, scrollToBottom])
+    }, [messages, scrollToBottom])
 
     return { bottomRef, showScrollButton, scrollToBottom }
 }
