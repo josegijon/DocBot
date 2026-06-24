@@ -15,14 +15,18 @@ interface InputBarProps {
 export const InputBar = ({ onSend, isLoading, disabled }: InputBarProps) => {
     const [input, setInput] = useState<string>("")
     const textareaRef = useRef<HTMLTextAreaElement>(null)
+    const formRef = useRef<HTMLFormElement>(null)
+
+    const hadFocusWithinBarRef = useRef(false)
 
     const handleSend = () => {
         if (!input.trim() || isLoading) return
+        hadFocusWithinBarRef.current = !!formRef.current?.contains(document.activeElement)
         onSend(input.trim())
         setInput("")
     }
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault()
         handleSend()
     }
@@ -34,14 +38,27 @@ export const InputBar = ({ onSend, isLoading, disabled }: InputBarProps) => {
     }
 
     useEffect(() => {
-        if (!isLoading && !disabled) {
+        if (!disabled) {
             textareaRef.current?.focus()
         }
-    }, [isLoading, disabled])
+    }, [disabled])
+
+    useEffect(() => {
+        if (isLoading || !hadFocusWithinBarRef.current) return
+
+        if (document.activeElement === document.body) {
+            textareaRef.current?.focus()
+        }
+        hadFocusWithinBarRef.current = false
+    }, [isLoading])
 
     return (
         <div className="p-6 bg-surface">
-            <form className="max-w-4xl mx-auto relative" onSubmit={handleSubmit}>
+            <form
+                ref={formRef}
+                className="max-w-4xl mx-auto relative"
+                onSubmit={handleSubmit}
+            >
                 <div className="border border-[#333] rounded-xl bg-surface-container-low shadow-lg focus-within:ring-1 focus-within:ring-primary/50 transition-all overflow-hidden flex items-center">
                     <label htmlFor={INPUT_TEXTAREA_ID} className="sr-only">
                         {TEXTAREA_LABEL}
@@ -64,7 +81,7 @@ export const InputBar = ({ onSend, isLoading, disabled }: InputBarProps) => {
                                 type="submit"
                                 aria-label={SEND_BUTTON_LABEL}
                                 title={SEND_BUTTON_LABEL}
-                                className="p-2 text-on-primary bg-primary rounded-lg transition-all cursor-pointer flex items-center justify-center hover:opacity-90 active:scale-95 disabled:bg-surface-variant disabled:text-outline disabled:cursor-default"
+                                className="p-2 text-on-primary bg-primary rounded-lg transition-all cursor-pointer flex items-center justify-center hover:opacity-90 active:scale-95 disabled:bg-surface-variant disabled:text-outline disabled:cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                 disabled={isLoading || disabled || !input.trim()}
                             >
                                 {isLoading
