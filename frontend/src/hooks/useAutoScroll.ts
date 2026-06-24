@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import type { Message } from "../types/chat.types"
 
 const VISIBILITY_THRESHOLD = 0.1
@@ -13,9 +13,9 @@ export const useAutoScroll = (messages: Message[]): UseAutoScrollReturn => {
     const [showScrollButton, setShowScrollButton] = useState(false)
     const bottomRef = useRef<HTMLDivElement>(null)
 
-    const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
+    const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
         bottomRef.current?.scrollIntoView({ behavior })
-    }
+    }, [])
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -35,7 +35,7 @@ export const useAutoScroll = (messages: Message[]): UseAutoScrollReturn => {
         } else if (!showScrollButton) {
             scrollToBottom("auto")
         }
-    }, [messages, showScrollButton])
+    }, [messages, showScrollButton, scrollToBottom])
 
     return { bottomRef, showScrollButton, scrollToBottom }
 }
