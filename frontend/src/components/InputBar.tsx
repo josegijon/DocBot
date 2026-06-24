@@ -5,6 +5,7 @@ const KEY_ENTER = "Enter"
 const INPUT_TEXTAREA_ID = "chat-input-textarea"
 const TEXTAREA_LABEL = "Escribe tu pregunta"
 const SEND_BUTTON_LABEL = "Enviar mensaje"
+const LOADING_ANNOUNCEMENT = "DocBot está generando una respuesta. Espera un momento."
 
 interface InputBarProps {
     onSend: (message: string) => void
@@ -58,6 +59,7 @@ export const InputBar = ({ onSend, isLoading, disabled }: InputBarProps) => {
                 ref={formRef}
                 className="max-w-4xl mx-auto relative"
                 onSubmit={handleSubmit}
+                aria-busy={isLoading}
             >
                 <div className="border border-[#333] rounded-xl bg-surface-container-low shadow-lg focus-within:ring-1 focus-within:ring-primary/50 transition-all overflow-hidden flex items-center">
                     <label htmlFor={INPUT_TEXTAREA_ID} className="sr-only">
@@ -90,6 +92,9 @@ export const InputBar = ({ onSend, isLoading, disabled }: InputBarProps) => {
                             </button>
                         </div>
                     </div>
+                </div>
+                <div aria-live="polite" aria-atomic="true" className="sr-only">
+                    {isLoading ? LOADING_ANNOUNCEMENT : ""}
                 </div>
             </form>
             <p className="text-center mt-3 font-jetbrains text-label-md text-on-surface-variant opacity-50">
