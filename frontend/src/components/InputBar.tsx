@@ -97,7 +97,7 @@ export const InputBar = ({ onSend, isLoading, disabled }: InputBarProps) => {
                     {isLoading ? LOADING_ANNOUNCEMENT : ""}
                 </div>
             </form>
-            <p className="text-center mt-3 font-jetbrains text-label-md text-on-surface-variant opacity-50">
+            <p className="text-center mt-3 font-jetbrains text-label-md text-on-surface-variant opacity-85">
                 DocBot puede cometer errores. Recuerda verificar la información importante.
             </p>
         </div>
