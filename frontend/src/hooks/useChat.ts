@@ -2,9 +2,20 @@ import { useEffect, useRef, useState } from "react"
 import type { Message } from "../types/chat.types"
 import { getChatStorageKey } from "../utils/storageKeys"
 import { NETWORK_ERROR_MESSAGE } from "../utils/errorMessages"
+import { isApiErrorResponse } from "../types/api.types"
 
 const SSE_EVENT_STREAM_ERROR = "event: stream_error"
 const SSE_DATA_PREFIX = "data:"
+
+const loadStoredMessages = (sessionId: string): Message[] => {
+    try {
+        const stored = localStorage.getItem(getChatStorageKey(sessionId))
+        return stored ? JSON.parse(stored) : []
+    } catch {
+        localStorage.removeItem(getChatStorageKey(sessionId))
+        return []
+    }
+}
 
 export const useChat = (docId: string | null, sessionId: string) => {
     const [messages, setMessages] = useState<Message[]>([])
@@ -22,9 +33,8 @@ export const useChat = (docId: string | null, sessionId: string) => {
             return
         }
 
-        const stored = localStorage.getItem(getChatStorageKey(sessionId))
         isInitialLoadRef.current = true
-        setMessages(stored ? JSON.parse(stored) : [])
+        setMessages(loadStoredMessages(sessionId))
 
         return () => {
             abortControllerRef.current?.abort()
@@ -67,6 +77,21 @@ export const useChat = (docId: string | null, sessionId: string) => {
                     message: userMessage,
                 }),
             })
+
+            if (!response.ok) {
+                const errorPayload: unknown = await response.json()
+                const errorMessage = isApiErrorResponse(errorPayload)
+                    ? errorPayload.message
+                    : NETWORK_ERROR_MESSAGE
+
+                setMessages(prev => {
+                    const updated = [...prev]
+                    updated[updated.length - 1] = { role: "assistant", content: errorMessage }
+                    return updated
+                })
+                setIsLoading(false)
+                return
+            }
 
             const reader = response.body!.getReader()
             const decoder = new TextDecoder()
@@ -126,7 +151,7 @@ export const useChat = (docId: string | null, sessionId: string) => {
                         if (isErrorEvent) break;
 
                     } catch (parseError) {
-                        // parse error: stream continues with next line
+                        console.error("[useChat] Error al parsear evento SSE:", parseError, jsonStr)
                     }
                 }
 
