@@ -18,6 +18,8 @@ export const ScrollToBottom = ({ onClick, isVisible }: ScrollToBottomProps) => {
             className={`absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center justify-center w-10 h-10 rounded-full bg-surface-bright border border-outline-variant shadow-lg text-on-surface hover:bg-primary hover:text-on-primary transition-all duration-300 z-10 cursor-pointer ${visibilityClass}`}
             id={SCROLL_TO_BOTTOM_BUTTON_ID}
             onClick={onClick}
+            aria-label="Desplazarse hasta los últimos mensajes"
+            type="button"
         >
             <ArrowDown />
         </button>
