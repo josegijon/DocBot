@@ -17,6 +17,7 @@ import { FileText, MessagesSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import { getChatStorageKey, getSummaryStorageKey } from './utils/storageKeys';
 import { NETWORK_ERROR_MESSAGE } from './utils/errorMessages';
+import type { DocumentExistsResponse } from './types/document.types';
 
 const UNNAMED_DOCUMENT_FALLBACK = "Documento sin nombre"
 
@@ -100,7 +101,7 @@ export const App = () => {
         return
       }
 
-      const data = await response.json()
+      const data = await response.json() as DocumentExistsResponse
 
       if (!data.exists) {
         removeDocument(selectedDocId)
