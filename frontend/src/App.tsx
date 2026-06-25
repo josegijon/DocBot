@@ -8,7 +8,6 @@ import { useSummary } from './hooks/useSummary';
 import { Header } from './components/Header';
 import { HeaderSummary } from './components/HeaderSummary';
 import { ButtonNewDocument } from './components/ButtonNewDocument';
-import { useChat } from './hooks/useChat';
 import { ChatWindow } from './components/ChatWindow';
 import { useDocumentHistory } from './hooks/useDocumentHistory';
 import { RecentDocuments } from './components/RecentDocuments';
@@ -18,6 +17,7 @@ import { toast } from 'sonner';
 import { getChatStorageKey, getSummaryStorageKey } from './utils/storageKeys';
 import { NETWORK_ERROR_MESSAGE } from './utils/errorMessages';
 import type { DocumentExistsResponse } from './types/document.types';
+import { checkDocumentExists, deleteDocument } from './utils/documentApi';
 
 const UNNAMED_DOCUMENT_FALLBACK = "Documento sin nombre"
 
@@ -34,7 +34,6 @@ export const App = () => {
   const { documents, addDocument, removeDocument } = useDocumentHistory()
   const { status, progress, resetStatus } = useIngestionStatus(docId, isDocumentReady)
   const { summary, isDone, resetSummary, error } = useSummary(docId, status)
-  const { messages, isLoading, sendMessage, resetMessages } = useChat(docId, sessionId)
 
   const handleUploadSuccess = (docId: string, filename: string, fileSizeBytes: number) => {
     const safeFilename = filename || UNNAMED_DOCUMENT_FALLBACK
@@ -57,24 +56,20 @@ export const App = () => {
   }
 
   const handleRemoveDocument = async (doc_id: string) => {
-    try {
-      const doc = documents.find(d => d.doc_id === doc_id)
-      localStorage.removeItem(getSummaryStorageKey(doc_id))
-      if (doc) localStorage.removeItem(getChatStorageKey(doc.session_id))
-      if (doc_id === docId) handleNewDocument();
+    const doc = documents.find(d => d.doc_id === doc_id)
+    localStorage.removeItem(getSummaryStorageKey(doc_id))
+    if (doc) localStorage.removeItem(getChatStorageKey(doc.session_id))
+    if (doc_id === docId) handleNewDocument();
 
-      const response = await fetch(`/api/documents/${doc_id}`, { method: "DELETE" })
+    const { success, errorMessage } = await deleteDocument(doc_id)
 
-      if (!response.ok) {
-        toast.error("No se pudo eliminar el documento")
-        return
-      }
-
-      removeDocument(doc_id)
-      toast.success("Documento eliminado")
-    } catch {
-      toast.error(NETWORK_ERROR_MESSAGE)
+    if (!success) {
+      toast.error(errorMessage ?? NETWORK_ERROR_MESSAGE)
+      return
     }
+
+    removeDocument(doc_id)
+    toast.success("Documento eliminado")
   }
 
   useEffect(() => {
@@ -85,39 +80,33 @@ export const App = () => {
   }, [status])
 
   const handleSelectDocument = async (selectedDocId: string, selectedSessionId: string) => {
-    try {
-      if (selectedDocId === docId) {
-        setIsHistoryOpen(false)
-        return
-      }
-
-      const doc = documents.find(d => d.doc_id === selectedDocId)
-      if (!doc) return
-
-      const response = await fetch(`/api/documents/${selectedDocId}/exists`)
-
-      if (!response.ok) {
-        toast.error(NETWORK_ERROR_MESSAGE)
-        return
-      }
-
-      const data = await response.json() as DocumentExistsResponse
-
-      if (!data.exists) {
-        removeDocument(selectedDocId)
-        toast.error("Este documento ya no está disponible en el servidor.")
-        return
-      }
-
-      setIsDocumentReady(true)
-      setDocId(doc.doc_id)
-      resetSummary()
-      setSessionId(doc.session_id)
-      setFilename(doc.filename)
+    if (selectedDocId === docId) {
       setIsHistoryOpen(false)
-    } catch {
-      toast.error(NETWORK_ERROR_MESSAGE)
+      return
     }
+
+    const doc = documents.find(d => d.doc_id === selectedDocId)
+    if (!doc) return
+
+    const { exists, errorMessage } = await checkDocumentExists(selectedDocId)
+
+    if (errorMessage) {
+      toast.error(errorMessage)
+      return
+    }
+
+    if (!exists) {
+      removeDocument(selectedDocId)
+      toast.error("Este documento ya no está disponible en el servidor.")
+      return
+    }
+
+    setIsDocumentReady(true)
+    setDocId(doc.doc_id)
+    resetSummary()
+    setSessionId(doc.session_id)
+    setFilename(doc.filename)
+    setIsHistoryOpen(false)
   }
 
   return (
