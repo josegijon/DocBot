@@ -77,7 +77,7 @@ export const App = () => {
       const alreadyExists = documents.some(d => d.doc_id === docId)
       if (!alreadyExists) addDocument(docId, sessionId, filename)
     }
-  }, [status])
+  }, [status, docId, filename, documents, sessionId, addDocument])
 
   const handleSelectDocument = async (selectedDocId: string, selectedSessionId: string) => {
     if (selectedDocId === docId) {
