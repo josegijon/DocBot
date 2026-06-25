@@ -14,6 +14,8 @@ export const useAutoScroll = (messages: Message[]): UseAutoScrollReturn => {
     const bottomRef = useRef<HTMLDivElement>(null)
     const showScrollButtonRef = useRef(showScrollButton)
 
+    const lastMessage = messages[messages.length - 1]
+
     useEffect(() => {
         showScrollButtonRef.current = showScrollButton
     })
@@ -32,7 +34,6 @@ export const useAutoScroll = (messages: Message[]): UseAutoScrollReturn => {
     }, [])
 
     useEffect(() => {
-        const lastMessage = messages[messages.length - 1]
         if (!lastMessage) return
 
         if (lastMessage.role === "user") {
@@ -40,7 +41,7 @@ export const useAutoScroll = (messages: Message[]): UseAutoScrollReturn => {
         } else if (!showScrollButtonRef.current) {
             scrollToBottom("auto")
         }
-    }, [messages, scrollToBottom])
+    }, [lastMessage, scrollToBottom])
 
     return { bottomRef, showScrollButton, scrollToBottom }
 }
