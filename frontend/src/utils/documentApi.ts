@@ -23,7 +23,8 @@ export const deleteDocument = async (docId: string): Promise<DeleteOutcome> => {
         }
 
         return { success: true, errorMessage: null }
-    } catch {
+    } catch (error) {
+        console.error("[documentApi] Fallo al eliminar el documento:", error)
         return { success: false, errorMessage: NETWORK_ERROR_MESSAGE }
     }
 }
@@ -45,6 +46,7 @@ export const checkDocumentExists = async (
         if (error instanceof Error && error.name === "AbortError") {
             return { exists: null, errorMessage: null }
         }
+        console.error("[documentApi] Fallo al comprobar la existencia del documento:", error)
         return { exists: null, errorMessage: NETWORK_ERROR_MESSAGE }
     }
 }
