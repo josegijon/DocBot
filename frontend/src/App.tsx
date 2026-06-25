@@ -1,23 +1,26 @@
-import { useEffect, useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import { UploadZone } from './components/UploadZone';
-import { useIngestionStatus } from './hooks/useIngestionStatus';
-import { IngestionProgress } from './components/IngestionProgress';
-import { DocumentSummary } from './components/DocumentSummary';
-import { useSummary } from './hooks/useSummary';
-import { Header } from './components/Header';
-import { HeaderSummary } from './components/HeaderSummary';
-import { ButtonNewDocument } from './components/ButtonNewDocument';
-import { ChatWindow } from './components/ChatWindow';
-import { useDocumentHistory } from './hooks/useDocumentHistory';
-import { RecentDocuments } from './components/RecentDocuments';
-import { ConfirmModal } from './components/ConfirmModal';
 import { FileText, MessagesSquare } from 'lucide-react';
 import { toast } from 'sonner';
+import { useEffect, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+
+import { useDocumentHistory } from './hooks/useDocumentHistory';
+import { useIngestionStatus } from './hooks/useIngestionStatus';
+import { useSummary } from './hooks/useSummary';
+
+import { ButtonNewDocument } from './components/ButtonNewDocument';
+import { ChatWindow } from './components/ChatWindow';
+import { ConfirmModal } from './components/ConfirmModal';
+import { DocumentSummary } from './components/DocumentSummary';
+import { Header } from './components/Header';
+import { HeaderSummary } from './components/HeaderSummary';
+import { IngestionProgress } from './components/IngestionProgress';
+import { RecentDocuments } from './components/RecentDocuments';
+import { UploadZone } from './components/UploadZone';
+
+import { checkDocumentExists, deleteDocument } from './utils/documentApi';
 import { getChatStorageKey, getSummaryStorageKey } from './utils/storageKeys';
 import { NETWORK_ERROR_MESSAGE } from './utils/errorMessages';
-import type { DocumentExistsResponse } from './types/document.types';
-import { checkDocumentExists, deleteDocument } from './utils/documentApi';
+
 
 const UNNAMED_DOCUMENT_FALLBACK = "Documento sin nombre"
 
@@ -109,6 +112,9 @@ export const App = () => {
     setIsHistoryOpen(false)
   }
 
+  const shouldShowNewDocumentButton =
+    status === "failed" || (status === "ready" && (isDone || error !== null))
+
   return (
     <div className='flex flex-col h-screen bg-surface'>
       <Header
@@ -142,7 +148,7 @@ export const App = () => {
           {!docId && <UploadZone onUploadSuccess={handleUploadSuccess} />}
           {status !== "ready" && docId && <IngestionProgress progress={progress} status={status} filename={filename} />}
           {status === "ready" && <DocumentSummary summary={summary} isDone={isDone} error={error} />}
-          {(status === "ready" && (isDone || error !== null) || status === "failed") && <ButtonNewDocument onClick={handleNewDocument} />}
+          {shouldShowNewDocumentButton && <ButtonNewDocument onClick={handleNewDocument} />}
         </aside>
 
         {/* Panel der */}
