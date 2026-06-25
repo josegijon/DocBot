@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-import { DOCUMENTS_STORAGE_KEY } from "../utils/storageKeys";
+import { DOCUMENTS_STORAGE_KEY, getChatStorageKey, getSummaryStorageKey } from "../utils/storageKeys";
 import type { DocumentHistory } from "../types/document.types";
 
 interface UseDocumentHistoryReturn {
@@ -45,6 +45,12 @@ export const useDocumentHistory = (): UseDocumentHistoryReturn => {
 
     const removeDocument = useCallback((doc_id: string) => {
         setDocuments(prev => {
+            const docToRemove = prev.find(doc => doc.doc_id === doc_id)
+            if (docToRemove) {
+                localStorage.removeItem(getSummaryStorageKey(docToRemove.doc_id))
+                localStorage.removeItem(getChatStorageKey(docToRemove.session_id))
+            }
+
             const next = prev.filter((doc: DocumentHistory) => doc.doc_id !== doc_id);
             saveDocuments(next);
             return next;

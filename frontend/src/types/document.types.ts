@@ -12,3 +12,7 @@ export interface UploadResponse {
     filename: string;
     status: IngestionStatus;
 }
+
+export interface DocumentExistsResponse {
+    exists: boolean
+}
