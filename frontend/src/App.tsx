@@ -86,7 +86,7 @@ export const App = () => {
     }
   }, [status, docId, filename, documents, sessionId, addDocument])
 
-  const handleSelectDocument = async (selectedDocId: string, selectedSessionId: string) => {
+  const handleSelectDocument = async (selectedDocId: string) => {
     selectDocumentAbortControllerRef.current?.abort()
     selectDocumentAbortControllerRef.current = null
 
