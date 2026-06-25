@@ -28,9 +28,12 @@ export const deleteDocument = async (docId: string): Promise<DeleteOutcome> => {
     }
 }
 
-export const checkDocumentExists = async (docId: string): Promise<ExistenceOutcome> => {
+export const checkDocumentExists = async (
+    docId: string,
+    signal?: AbortSignal
+): Promise<ExistenceOutcome> => {
     try {
-        const response = await fetch(getDocumentExistsEndpoint(docId))
+        const response = await fetch(getDocumentExistsEndpoint(docId), { signal })
 
         if (!response.ok) {
             return { exists: null, errorMessage: NETWORK_ERROR_MESSAGE }
@@ -38,7 +41,10 @@ export const checkDocumentExists = async (docId: string): Promise<ExistenceOutco
 
         const data = await response.json() as DocumentExistsResponse
         return { exists: data.exists, errorMessage: null }
-    } catch {
+    } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") {
+            return { exists: null, errorMessage: null }
+        }
         return { exists: null, errorMessage: NETWORK_ERROR_MESSAGE }
     }
 }

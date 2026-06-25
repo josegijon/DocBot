@@ -1,6 +1,6 @@
 import { FileText, MessagesSquare } from 'lucide-react';
 import { toast } from 'sonner';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 import { useDocumentHistory } from './hooks/useDocumentHistory';
@@ -18,7 +18,6 @@ import { RecentDocuments } from './components/RecentDocuments';
 import { UploadZone } from './components/UploadZone';
 
 import { checkDocumentExists, deleteDocument } from './utils/documentApi';
-import { getChatStorageKey, getSummaryStorageKey } from './utils/storageKeys';
 import { NETWORK_ERROR_MESSAGE } from './utils/errorMessages';
 
 
@@ -58,11 +57,16 @@ export const App = () => {
     resetSummary()
   }
 
+  const selectDocumentAbortControllerRef = useRef<AbortController | null>(null)
+
+  useEffect(() => {
+    return () => {
+      selectDocumentAbortControllerRef.current?.abort()
+    }
+  }, [])
+
   const handleRemoveDocument = async (doc_id: string) => {
-    const doc = documents.find(d => d.doc_id === doc_id)
-    localStorage.removeItem(getSummaryStorageKey(doc_id))
-    if (doc) localStorage.removeItem(getChatStorageKey(doc.session_id))
-    if (doc_id === docId) handleNewDocument();
+    if (doc_id === docId) handleNewDocument()
 
     const { success, errorMessage } = await deleteDocument(doc_id)
 
@@ -83,6 +87,9 @@ export const App = () => {
   }, [status, docId, filename, documents, sessionId, addDocument])
 
   const handleSelectDocument = async (selectedDocId: string, selectedSessionId: string) => {
+    selectDocumentAbortControllerRef.current?.abort()
+    selectDocumentAbortControllerRef.current = null
+
     if (selectedDocId === docId) {
       setIsHistoryOpen(false)
       return
@@ -91,12 +98,19 @@ export const App = () => {
     const doc = documents.find(d => d.doc_id === selectedDocId)
     if (!doc) return
 
-    const { exists, errorMessage } = await checkDocumentExists(selectedDocId)
+    selectDocumentAbortControllerRef.current = new AbortController()
+
+    const { exists, errorMessage } = await checkDocumentExists(
+      selectedDocId,
+      selectDocumentAbortControllerRef.current.signal
+    )
 
     if (errorMessage) {
       toast.error(errorMessage)
       return
     }
+
+    if (exists === null) return
 
     if (!exists) {
       removeDocument(selectedDocId)
