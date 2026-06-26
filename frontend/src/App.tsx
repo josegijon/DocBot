@@ -130,7 +130,9 @@ export const App = () => {
     status === "failed" || (status === "ready" && (isDone || error !== null))
 
   return (
-    <div className='flex flex-col h-screen bg-surface'>
+    <div className='flex flex-col h-screen bg-surface relative'>
+      <div className='absolute left-0 top-0 bottom-0 w-[calc((100vw-1920px)/2)] bg-surface-container-lowest pointer-events-none'></div>
+
       <Header
         onOpenHistory={() => setIsHistoryOpen(true)}
         isHistoryOpen={isHistoryOpen}
@@ -155,7 +157,7 @@ export const App = () => {
       )}
 
       {/* Contenedor */}
-      <div className='flex flex-1 mt-16.25 overflow-hidden pb-16 lg:pb-0'>
+      <div className='flex flex-1 mt-16.25 overflow-hidden pb-16 lg:pb-0 w-full max-w-480 mx-auto'>
         {/* Panel izq */}
         <aside className={`w-full lg:flex lg:w-[40%] xl:w-[30%] border-r border-outline-variant flex-col gap-6 bg-surface-container-lowest p-6 overflow-y-auto ${activeTab === 'document' ? "flex" : "hidden"}`}>
           {docId && filename && <HeaderSummary filename={filename} fileSizeBytes={fileSizeBytes} />}
