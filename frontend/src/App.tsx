@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
+import { useDelayedIngestionReady } from './hooks/useDelayedIngestionReady';
 import { useDocumentHistory } from './hooks/useDocumentHistory';
 import { useIngestionStatus } from './hooks/useIngestionStatus';
 import { useSummary } from './hooks/useSummary';
@@ -35,6 +36,7 @@ export const App = () => {
 
   const { documents, addDocument, removeDocument } = useDocumentHistory()
   const { status, progress, resetStatus } = useIngestionStatus(docId, isDocumentReady)
+  const { isReadyToDisplay } = useDelayedIngestionReady(status, isDocumentReady)
   const { summary, isDone, resetSummary, error } = useSummary(docId, status)
 
   const handleUploadSuccess = (docId: string, filename: string, fileSizeBytes: number) => {
@@ -162,8 +164,8 @@ export const App = () => {
         <aside className={`w-full lg:flex lg:w-[40%] xl:w-[30%] border-r border-outline-variant flex-col gap-6 bg-surface-container-lowest p-6 overflow-y-auto ${activeTab === 'document' ? "flex" : "hidden"}`}>
           {docId && filename && <HeaderSummary filename={filename} fileSizeBytes={fileSizeBytes} />}
           {!docId && <UploadZone onUploadSuccess={handleUploadSuccess} />}
-          {status !== "ready" && docId && <IngestionProgress progress={progress} status={status} filename={filename} />}
-          {status === "ready" && <DocumentSummary summary={summary} isDone={isDone} error={error} />}
+          {!isReadyToDisplay && docId && <IngestionProgress progress={progress} status={status} filename={filename} />}
+          {isReadyToDisplay && <DocumentSummary summary={summary} isDone={isDone} error={error} />}
           {shouldShowNewDocumentButton && <ButtonNewDocument onClick={handleNewDocument} />}
         </aside>
 
