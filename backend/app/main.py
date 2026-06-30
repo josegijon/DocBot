@@ -6,6 +6,18 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import chat, documents
 from app.core.config import settings
+from app.core.exception_handlers import (
+    auth_exception_handler,
+    document_not_found_handler,
+    empty_query_handler,
+    file_too_large_handler,
+    file_write_handler,
+    generic_docbot_handler,
+    invalid_file_type_handler,
+    llm_exception_handler,
+    pdf_not_found_handler,
+    vector_store_internal_handler,
+)
 from app.core.exceptions import (
     AuthException,
     DocBotException,
@@ -17,18 +29,6 @@ from app.core.exceptions import (
     LLMException,
     PDFNotFoundException,
     VectorStoreInternalException,
-)
-from app.core.exception_handlers import (
-    auth_exception_handler,
-    document_not_found_handler,
-    empty_query_handler,
-    file_too_large_handler,
-    file_write_handler,
-    invalid_file_type_handler,
-    pdf_not_found_handler,
-    llm_exception_handler,
-    generic_docbot_handler,
-    vector_store_internal_handler,
 )
 from app.core.ml_models import load_embeddings_model, load_groq_client, load_reranker
 
@@ -56,7 +56,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     yield
 
-    await app.state.groq_client.aclose()
+    await app.state.groq_client.close()
 
 
 app = FastAPI(
