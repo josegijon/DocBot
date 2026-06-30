@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from "react"
-import { getSummaryStorageKey } from "../utils/storageKeys"
+
 import type { IngestionStatus } from "../types/ingestionStatus.types";
+
+import { getDocumentSummaryEndpoint } from "../utils/apiRoutes";
+import { getSummaryStorageKey } from "../utils/storageKeys"
 import { NETWORK_ERROR_MESSAGE } from "../utils/errorMessages";
 
 const SSE_EVENT_STREAM_ERROR = "stream_error"
@@ -38,7 +41,7 @@ export const useSummary = (docId: string | null, status: IngestionStatus): UseSu
             return
         }
 
-        const source = new EventSource(`/api/documents/${docId}/summary`)
+        const source = new EventSource(getDocumentSummaryEndpoint(docId))
 
         let accumulatedSummary = ""
 

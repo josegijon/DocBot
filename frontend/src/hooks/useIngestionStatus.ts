@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from "react"
+
 import type { IngestionStatus } from "../types/ingestionStatus.types";
+
+import { getDocumentStatusEndpoint } from "../utils/apiRoutes";
 
 interface IngestionState {
     status: IngestionStatus
@@ -31,7 +34,7 @@ export const useIngestionStatus = (docId: string | null, isKnownReady: boolean =
         if (!docId) return;
         if (!docId || isKnownReady) return;
 
-        const source = new EventSource(`/api/documents/${docId}/status`);
+        const source = new EventSource(getDocumentStatusEndpoint(docId));
 
         source.onmessage = (event) => {
             const data = JSON.parse(event.data) as IngestionState;

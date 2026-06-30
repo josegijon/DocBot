@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from "react"
+
+import { isApiErrorResponse } from "../types/api.types"
 import type { Message } from "../types/chat.types"
+
+import { CHAT_ENDPOINT } from "../utils/apiRoutes"
 import { getChatStorageKey } from "../utils/storageKeys"
 import { NETWORK_ERROR_MESSAGE } from "../utils/errorMessages"
-import { isApiErrorResponse } from "../types/api.types"
 
 const SSE_EVENT_STREAM_ERROR = "event: stream_error"
 const SSE_DATA_PREFIX = "data:"
@@ -67,7 +70,7 @@ export const useChat = (docId: string | null, sessionId: string) => {
             abortControllerRef.current?.abort()
             abortControllerRef.current = new AbortController()
 
-            const response = await fetch("/api/chat/", {
+            const response = await fetch(CHAT_ENDPOINT, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 signal: abortControllerRef.current.signal,
