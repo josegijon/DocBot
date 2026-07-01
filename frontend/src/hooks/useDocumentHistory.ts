@@ -5,7 +5,7 @@ import type { DocumentHistory } from "../types/document.types";
 
 interface UseDocumentHistoryReturn {
     documents: DocumentHistory[];
-    addDocument: (doc_id: string, session_id: string, filename: string) => void;
+    addDocument: (doc_id: string, session_id: string, filename: string, fileSizeBytes: number) => void;
     removeDocument: (doc_id: string) => void;
     clearHistory: () => void;
 }
@@ -17,7 +17,12 @@ const saveDocuments = (docs: DocumentHistory[]): void => {
 const loadDocuments = (): DocumentHistory[] => {
     try {
         const stored = localStorage.getItem(DOCUMENTS_STORAGE_KEY);
-        return stored ? JSON.parse(stored) : [];
+        const parsed: DocumentHistory[] = stored ? JSON.parse(stored) : [];
+
+        return parsed.map(doc => ({
+            ...doc,
+            fileSizeBytes: doc.fileSizeBytes ?? 0
+        }));
     } catch {
         localStorage.removeItem(DOCUMENTS_STORAGE_KEY);
         return [];
@@ -27,11 +32,12 @@ const loadDocuments = (): DocumentHistory[] => {
 export const useDocumentHistory = (): UseDocumentHistoryReturn => {
     const [documents, setDocuments] = useState<DocumentHistory[]>(loadDocuments);
 
-    const addDocument = useCallback((doc_id: string, session_id: string, filename: string) => {
+    const addDocument = useCallback((doc_id: string, session_id: string, filename: string, fileSizeBytes: number) => {
         const newDocument: DocumentHistory = {
             doc_id,
             session_id,
             filename,
+            fileSizeBytes,
             saved_at: new Date().toISOString()
         };
 
