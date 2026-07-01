@@ -12,8 +12,14 @@ export const ChatOnboarding = ({ filename }: ChatOnboardingProps) => {
 
     const onboardingMessage = hasDocument ? (
         <>
-            <h2 className="font-geist text-headline-lg text-on-surface tracking-tight">
-                Listo para explorar <span className="text-primary font-jetbrains italic">{filename}</span>
+            <h2 className="font-geist text-headline-lg text-on-surface tracking-tight max-w-full flex flex-col items-center gap-1">
+                <span>Listo para explorar</span>
+                <span
+                    title={filename ?? undefined}
+                    className="text-primary font-jetbrains italic max-w-full truncate"
+                >
+                    {filename}
+                </span>
             </h2>
             <p className="font-geist text-body-lg text-on-surface-variant max-w-lg balance">
                 La IA ya ha analizado el documento. Haz tu primera pregunta para comenzar la conversación.
