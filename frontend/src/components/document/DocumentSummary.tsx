@@ -12,7 +12,7 @@ const SUMMARY_TITLE = "Resumen del documento"
 
 export const DocumentSummary = ({ summary, isDone, error }: DocumentSummaryProps) => {
     return (
-        <div className="flex-1 overflow-y-auto chat-scrollbar flex flex-col gap-3">
+        <div className="flex-1 min-h-0 overflow-y-auto chat-scrollbar flex flex-col gap-3">
             <h3 className="font-jetbrains text-label-md uppercase text-primary tracking-widest">
                 {SUMMARY_TITLE}
             </h3>
