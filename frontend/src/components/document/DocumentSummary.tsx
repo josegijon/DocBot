@@ -23,7 +23,7 @@ export const DocumentSummary = ({ summary, isDone, error }: DocumentSummaryProps
                     <p className="font-geist text-body-md">{error}</p>
                 </div>
             ) : (
-                <p className="font-geist text-body-md text-on-surface-variant whitespace-pre-wrap">
+                <p className="font-geist text-body-md text-on-surface-variant whitespace-pre-wrap pr-1.5">
                     {formatMessageContent(summary)}
                     {!isDone && (
                         <span className="animate-pulse text-primary font-bold ml-0.5">|</span>
