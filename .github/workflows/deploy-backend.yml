@@ -19,11 +19,11 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          cd backend
-          git init
-          git branch -m main
+          git clone https://josegijon:$HF_TOKEN@huggingface.co/spaces/josegijon/DocBot hf-space
+          cp -r backend/. hf-space/
+          cd hf-space
           git config user.email "ci@docbot"
           git config user.name "DocBot CI"
           git add .
-          git commit -m "deploy: sync from GitHub"
-          git push --force https://josegijon:$HF_TOKEN@huggingface.co/spaces/josegijon/DocBot main
+          git diff --cached --quiet || git commit -m "deploy: sync from GitHub"
+          git push
