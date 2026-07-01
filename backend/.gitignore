@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+storage/chroma/
+storage/uploads/*.pdf
+.pytest_cache/
