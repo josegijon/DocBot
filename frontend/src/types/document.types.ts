@@ -4,6 +4,7 @@ export interface DocumentHistory {
     doc_id: string;
     session_id: string;
     filename: string;
+    fileSizeBytes: number;
     saved_at: string;
 }
 

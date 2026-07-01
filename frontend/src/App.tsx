@@ -45,7 +45,7 @@ export const App = () => {
     setDocId(docId)
     setFilename(safeFilename)
     setFileSizeBytes(fileSizeBytes)
-    addDocument(docId, sessionId, safeFilename)
+    addDocument(docId, sessionId, safeFilename, fileSizeBytes)
     setActiveTab('chat')
   }
 
@@ -84,9 +84,9 @@ export const App = () => {
   useEffect(() => {
     if (status === "ready" && docId && filename) {
       const alreadyExists = documents.some(d => d.doc_id === docId)
-      if (!alreadyExists) addDocument(docId, sessionId, filename)
+      if (!alreadyExists) addDocument(docId, sessionId, filename, fileSizeBytes)
     }
-  }, [status, docId, filename, documents, sessionId, addDocument])
+  }, [status, docId, filename, documents, sessionId, fileSizeBytes, addDocument])
 
   const handleSelectDocument = async (selectedDocId: string) => {
     selectDocumentAbortControllerRef.current?.abort()
@@ -125,6 +125,7 @@ export const App = () => {
     resetSummary()
     setSessionId(doc.session_id)
     setFilename(doc.filename)
+    setFileSizeBytes(doc.fileSizeBytes)
     setIsHistoryOpen(false)
   }
 
