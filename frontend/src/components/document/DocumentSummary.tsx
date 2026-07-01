@@ -1,5 +1,6 @@
 import { AlertTriangle } from "lucide-react"
-import { formatMessageContent } from "../utils/format"
+
+import { formatMessageContent } from "../../utils/format"
 
 interface DocumentSummaryProps {
     summary: string

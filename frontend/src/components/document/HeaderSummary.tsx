@@ -1,5 +1,6 @@
 import { FileText } from "lucide-react"
-import { formatFileSize } from "../utils/format"
+
+import { formatFileSize } from "../../utils/format"
 
 interface HeaderSummaryProps {
     filename: string
