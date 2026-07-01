@@ -159,9 +159,9 @@ export const App = () => {
       )}
 
       {/* Contenedor */}
-      <div className='flex flex-1 mt-16.25 overflow-hidden pb-16 lg:pb-0 w-full max-w-480 mx-auto'>
+      <div className='flex flex-1 min-h-0 mt-16.25 overflow-hidden pb-16 lg:pb-0 w-full max-w-480 mx-auto'>
         {/* Panel izq */}
-        <aside className={`w-full lg:flex lg:w-[40%] xl:w-[30%] border-r border-outline-variant flex-col gap-6 bg-surface-container-lowest p-6 overflow-y-auto ${activeTab === 'document' ? "flex" : "hidden"}`}>
+        <aside className={`w-full lg:flex lg:w-[40%] xl:w-[30%] min-h-0 border-r border-outline-variant flex-col gap-6 bg-surface-container-lowest p-6 overflow-y-auto ${activeTab === 'document' ? "flex" : "hidden"}`}>
           {docId && filename && <HeaderSummary filename={filename} fileSizeBytes={fileSizeBytes} />}
           {!docId && <UploadZone onUploadSuccess={handleUploadSuccess} />}
           {!isReadyToDisplay && docId && <IngestionProgress progress={progress} status={status} filename={filename} />}
@@ -170,7 +170,7 @@ export const App = () => {
         </aside>
 
         {/* Panel der */}
-        <main className={`lg:flex flex-1 overflow-hidden ${activeTab === "chat" ? "flex" : "hidden"}`}>
+        <main className={`lg:flex flex-1 min-h-0 overflow-hidden ${activeTab === "chat" ? "flex" : "hidden"}`}>
           <ChatWindow docId={docId} sessionId={sessionId} filename={filename} />
         </main>
       </div>
