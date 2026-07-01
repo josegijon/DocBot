@@ -1,8 +1,10 @@
 // src/components/MessageBubble.tsx
 import { BookOpenText } from "lucide-react"
+
 import { SourceCard } from "./SourceCard"
-import { formatMessageContent } from "../utils/format"
-import type { Message } from "../types/chat.types"
+
+import { formatMessageContent } from "../../utils/format"
+import type { Message } from "../../types/chat.types"
 
 interface MessageBubbleProps {
     message: Message

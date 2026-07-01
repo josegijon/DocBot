@@ -1,7 +1,8 @@
 import { X } from "lucide-react"
-import { useFocusTrap } from "../hooks/useFocusTrap"
+
+import { useFocusTrap } from "../../hooks/useFocusTrap"
 import { HistoryItem } from "./HistoryItem"
-import type { DocumentHistory } from "../types/document.types"
+import type { DocumentHistory } from "../../types/document.types"
 
 interface RecentDocumentsProps {
     documents: DocumentHistory[]

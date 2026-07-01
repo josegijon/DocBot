@@ -1,4 +1,4 @@
-import type { IngestionStatus } from "../types/ingestionStatus.types"
+import type { IngestionStatus } from "../../types/ingestionStatus.types"
 
 interface IngestionProgressProps {
     progress: number

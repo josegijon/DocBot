@@ -1,7 +1,8 @@
 import { Loader2, Upload } from "lucide-react"
 import { useRef, useState } from "react"
 import { toast } from "sonner";
-import { useDocumentUpload } from "../hooks/useDocumentUpload";
+
+import { useDocumentUpload } from "../../hooks/useDocumentUpload";
 
 const KEY_ENTER = "Enter"
 const KEY_SPACE = " "

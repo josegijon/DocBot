@@ -8,15 +8,15 @@ import { useDocumentHistory } from './hooks/useDocumentHistory';
 import { useIngestionStatus } from './hooks/useIngestionStatus';
 import { useSummary } from './hooks/useSummary';
 
-import { ButtonNewDocument } from './components/ButtonNewDocument';
-import { ChatWindow } from './components/ChatWindow';
-import { ConfirmModal } from './components/ConfirmModal';
-import { DocumentSummary } from './components/DocumentSummary';
+import { ButtonNewDocument } from './components/document/ButtonNewDocument';
+import { ChatWindow } from './components/chat/ChatWindow';
+import { ConfirmModal } from './components/shared/ConfirmModal';
+import { DocumentSummary } from './components/document/DocumentSummary';
 import { Header } from './components/Header';
-import { HeaderSummary } from './components/HeaderSummary';
-import { IngestionProgress } from './components/IngestionProgress';
-import { RecentDocuments } from './components/RecentDocuments';
-import { UploadZone } from './components/UploadZone';
+import { HeaderSummary } from './components/document/HeaderSummary';
+import { IngestionProgress } from './components/document/IngestionProgress';
+import { RecentDocuments } from './components/history/RecentDocuments';
+import { UploadZone } from './components/upload/UploadZone';
 
 import { checkDocumentExists, deleteDocument } from './utils/documentApi';
 import { NETWORK_ERROR_MESSAGE } from './utils/errorMessages';

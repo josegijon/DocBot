@@ -1,5 +1,6 @@
-import { useAutoScroll } from "../hooks/useAutoScroll";
-import { useChat } from "../hooks/useChat";
+
+import { useAutoScroll } from "../../hooks/useAutoScroll";
+import { useChat } from "../../hooks/useChat";
 
 import { ChatOnboarding } from "./ChatOnboarding";
 import { InputBar } from "./InputBar";
