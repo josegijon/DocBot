@@ -35,6 +35,6 @@ enunciado-docbot.md
 **/__pycache__/
 *.pyc
 storage/
-.github/
+agents/
 
 todo.txt

@@ -1,0 +1,28 @@
+name: Deploy backend to HF Spaces
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Push backend to HF Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          cd backend
+          git init
+          git config user.email "ci@docbot"
+          git config user.name "DocBot CI"
+          git add .
+          git commit -m "deploy: sync from GitHub"
+          git push --force https://josegijon:$HF_TOKEN@huggingface.co/spaces/josegijon/DocBot main
