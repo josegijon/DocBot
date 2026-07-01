@@ -32,7 +32,7 @@ export const ChatOnboarding = ({ filename }: ChatOnboardingProps) => {
 
     return (
         <div className="flex-1 flex flex-col items-center justify-center relative h-full p-6">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
+            <div className="absolute w-full h-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
 
             <div className="max-w-3xl w-full flex flex-col items-center gap-4 text-center z-10">
 
