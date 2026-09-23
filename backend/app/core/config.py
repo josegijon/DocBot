@@ -57,7 +57,7 @@ class Settings(BaseSettings):
     UPLOAD_DIR: Path = Path("./storage/uploads")
     MAX_PDF_SIZE_MB: int = 50
     CORS_ORIGINS: list[str] = ["http://localhost:5173"]
-    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    GROQ_MODEL: str = "openai/gpt-oss-120b"
     EMBEDDINGS_MODEL_NAME: str = "all-MiniLM-L6-v2"
     CONVERSATION_MAX_TURNS: int = 6
     RERANKER_TOP_K: int = 3
